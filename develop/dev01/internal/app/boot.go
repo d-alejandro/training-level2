@@ -7,6 +7,9 @@ import (
 	"time"
 )
 
+/*
+Boot is the project loading function
+*/
 func Boot() {
 	ntpAdapter := helpers.NewNTPAdapter()
 

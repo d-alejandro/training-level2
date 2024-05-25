@@ -7,13 +7,22 @@ import (
 	"time"
 )
 
+/*
+NTPAdapter is an adapter for the NTP library
+*/
 type NTPAdapter struct {
 }
 
+/*
+NewNTPAdapter is the NTPAdapter constructor
+*/
 func NewNTPAdapter() *NTPAdapter {
 	return &NTPAdapter{}
 }
 
+/*
+GetCurrentTime is an action for NTPAdapter
+*/
 func (receiver *NTPAdapter) GetCurrentTime(ntpServer string) (time time.Time, err error) {
 	defer func() {
 		if recoveryError := recover(); recoveryError != nil {
