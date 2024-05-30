@@ -1,5 +1,14 @@
 package main
 
+import (
+	"bufio"
+	"fmt"
+	"log"
+	"os"
+	"strings"
+	"unicode"
+)
+
 /*
 === Задача на распаковку ===
 
@@ -19,5 +28,33 @@ package main
 */
 
 func main() {
+	fmt.Println("Введите строку:")
 
+	reader := bufio.NewReader(os.Stdin)
+	inputString, err := reader.ReadString('\n')
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	inputString = strings.TrimSuffix(inputString, "\n")
+	outputMessage := unpackString(inputString)
+
+	fmt.Println("Output: ", outputMessage)
+}
+
+func unpackString(input string) string {
+	arrayRune := []rune(input)
+
+	var outputMessage string
+
+	switch {
+	case len(arrayRune) == 0:
+		outputMessage = ""
+	case unicode.IsDigit(arrayRune[0]):
+		outputMessage = "некорректная строка"
+	default:
+		outputMessage = parseArrayRune(arrayRune)
+	}
+	return outputMessage
 }
