@@ -9,22 +9,30 @@ import (
 func parseArrayRune(array []rune) string {
 	var stringBuilder strings.Builder
 
-	const StartSearchPosition = 1
 	arrayLength := len(array)
 
-	for index := StartSearchPosition; index < arrayLength; index++ {
+	startCopy := 0
+	endCopy := 0
+
+	for index := startCopy + 1; index < arrayLength; index++ {
 		numberStartPosition, isStartOk := searchNumberStartPosition(array, arrayLength, index)
 
 		if !isStartOk {
+			endCopy = arrayLength
 			break
 		}
 
+		endCopy = numberStartPosition - 1
+		copyString := string(array[startCopy:endCopy])
+		stringBuilder.WriteString(copyString)
+
 		numberEndPosition := searchNumberEndPosition(array, arrayLength, numberStartPosition+1)
+		index = numberEndPosition - 1
 
 		if array[index-1] == '\\' {
 
 		} else {
-			numberFromString := string(array[numberStartPosition : numberEndPosition+1])
+			numberFromString := string(array[numberStartPosition:numberEndPosition])
 
 			number, err := strconv.Atoi(numberFromString)
 
@@ -37,11 +45,12 @@ func parseArrayRune(array []rune) string {
 			stringBuilder.WriteString(unpackedString)
 		}
 
-		index = numberEndPosition
+		startCopy = numberEndPosition
 	}
 
-	if stringBuilder.Len() == 0 {
-		return string(array)
+	if startCopy < endCopy {
+		copyString := string(array[startCopy:endCopy])
+		stringBuilder.WriteString(copyString)
 	}
 
 	return stringBuilder.String()
@@ -62,5 +71,5 @@ func searchNumberEndPosition(array []rune, arrayLength int, searchFrom int) int 
 			return index
 		}
 	}
-	return arrayLength - 1
+	return arrayLength
 }
