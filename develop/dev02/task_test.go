@@ -24,6 +24,10 @@ func Test_unpackString(t *testing.T) {
 			expected: "",
 		},
 		{
+			argument: "v",
+			expected: "v",
+		},
+		{
 			argument: "QQ3f2d12y",
 			expected: "QQQQffddddddddddddy",
 		},

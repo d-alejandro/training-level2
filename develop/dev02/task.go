@@ -48,13 +48,17 @@ func unpackString(input string) string {
 
 	var outputMessage string
 
+	arrayLength := len(arrayRune)
+
 	switch {
-	case len(arrayRune) == 0:
+	case arrayLength == 0:
 		outputMessage = ""
 	case unicode.IsDigit(arrayRune[0]):
 		outputMessage = "некорректная строка"
+	case arrayLength == 1:
+		outputMessage = string(arrayRune)
 	default:
-		outputMessage = parseArrayRune(arrayRune)
+		outputMessage = parseArrayRune(arrayRune, arrayLength)
 	}
 	return outputMessage
 }

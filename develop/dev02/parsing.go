@@ -6,10 +6,8 @@ import (
 	"unicode"
 )
 
-func parseArrayRune(array []rune) string {
+func parseArrayRune(array []rune, arrayLength int) string {
 	var stringBuilder strings.Builder
-
-	arrayLength := len(array)
 
 	startCopy := 0
 	endCopy := 0
@@ -29,19 +27,17 @@ func parseArrayRune(array []rune) string {
 		numberEndPosition := searchNumberEndPosition(array, arrayLength, numberStartPosition+1)
 		index = numberEndPosition - 1
 
-		if array[index-1] == '\\' {
+		if array[endCopy] == '\\' {
 
 		} else {
 			numberFromString := string(array[numberStartPosition:numberEndPosition])
-
 			number, err := strconv.Atoi(numberFromString)
 
 			if err != nil {
 				panic(err)
 			}
 
-			unpackedString := strings.Repeat(string(array[index-1]), number)
-
+			unpackedString := strings.Repeat(string(array[endCopy]), number)
 			stringBuilder.WriteString(unpackedString)
 		}
 
