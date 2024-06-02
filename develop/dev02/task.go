@@ -58,7 +58,8 @@ func unpackString(input string) string {
 	case arrayLength == 1:
 		outputMessage = string(arrayRune)
 	default:
-		outputMessage = parseArrayRune(arrayRune, arrayLength)
+		parsing := NewParsing(arrayRune)
+		outputMessage = parsing.ParseArrayRune()
 	}
 	return outputMessage
 }

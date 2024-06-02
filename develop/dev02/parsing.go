@@ -6,79 +6,84 @@ import (
 	"unicode"
 )
 
-func parseArrayRune(array []rune, arrayLength int) string {
-	var stringBuilder strings.Builder
+type Parsing struct {
+	array         []rune
+	arrayLength   int
+	stringBuilder *strings.Builder
+	startCopy     int
+	endCopy       int
+}
 
-	startCopy := 0
-	endCopy := 0
+func NewParsing(array []rune) *Parsing {
+	return &Parsing{
+		array:         array,
+		arrayLength:   len(array),
+		stringBuilder: &strings.Builder{},
+	}
+}
 
-	for index := startCopy + 1; index < arrayLength; index++ {
-		numberStartPosition, isStartOk := searchNumberStartPosition(array, arrayLength, index)
+func (receiver *Parsing) ParseArrayRune() string {
+	for index := receiver.startCopy + 1; index < receiver.arrayLength; index++ {
+		numberStartPosition, isStartOk := receiver.searchNumberStartPosition(index)
 
 		if !isStartOk {
-			endCopy = arrayLength
+			receiver.endCopy = receiver.arrayLength
 			break
 		}
 
-		endCopy = numberStartPosition - 1
-		copyAndWriteString(&stringBuilder, array, startCopy, endCopy)
+		receiver.endCopy = numberStartPosition - 1
+		receiver.copyAndWriteString()
 
-		numberEndPosition := searchNumberEndPosition(array, arrayLength, numberStartPosition+1)
+		numberEndPosition := receiver.searchNumberEndPosition(numberStartPosition + 1)
 
-		if array[endCopy] == '\\' {
+		if receiver.array[receiver.endCopy] == '\\' {
 
 		} else {
-			convertAndRepeatSymbol(&stringBuilder, array, numberStartPosition, numberEndPosition, endCopy)
+			receiver.convertAndRepeatSymbol(numberStartPosition, numberEndPosition)
 		}
 
-		startCopy = numberEndPosition
+		receiver.startCopy = numberEndPosition
 		index = numberEndPosition - 1
 	}
 
-	if startCopy < endCopy {
-		copyAndWriteString(&stringBuilder, array, startCopy, endCopy)
+	if receiver.startCopy < receiver.endCopy {
+		receiver.copyAndWriteString()
 	}
 
-	return stringBuilder.String()
+	return receiver.stringBuilder.String()
 }
 
-func searchNumberStartPosition(array []rune, arrayLength int, searchFrom int) (startPosition int, isOk bool) {
-	for index := searchFrom; index < arrayLength; index++ {
-		if unicode.IsDigit(array[index]) {
+func (receiver *Parsing) searchNumberStartPosition(searchFrom int) (startPosition int, isOk bool) {
+	for index := searchFrom; index < receiver.arrayLength; index++ {
+		if unicode.IsDigit(receiver.array[index]) {
 			return index, true
 		}
 	}
 	return
 }
 
-func copyAndWriteString(stringBuilder *strings.Builder, array []rune, startCopy int, endCopy int) {
-	copyString := string(array[startCopy:endCopy])
-	stringBuilder.WriteString(copyString)
+func (receiver *Parsing) copyAndWriteString() {
+	copyString := string(receiver.array[receiver.startCopy:receiver.endCopy])
+	receiver.stringBuilder.WriteString(copyString)
 }
 
-func searchNumberEndPosition(array []rune, arrayLength int, searchFrom int) int {
-	for index := searchFrom; index < arrayLength; index++ {
-		if !unicode.IsDigit(array[index]) {
+func (receiver *Parsing) searchNumberEndPosition(searchFrom int) int {
+	for index := searchFrom; index < receiver.arrayLength; index++ {
+		if !unicode.IsDigit(receiver.array[index]) {
 			return index
 		}
 	}
-	return arrayLength
+	return receiver.arrayLength
 }
 
-func convertAndRepeatSymbol(
-	stringBuilder *strings.Builder,
-	array []rune,
-	numberStartPosition int,
-	numberEndPosition int,
-	endCopy int,
-) {
-	numberFromString := string(array[numberStartPosition:numberEndPosition])
+func (receiver *Parsing) convertAndRepeatSymbol(numberStartPosition int, numberEndPosition int) {
+	numberFromString := string(receiver.array[numberStartPosition:numberEndPosition])
 	number, err := strconv.Atoi(numberFromString)
 
 	if err != nil {
 		panic(err)
 	}
 
-	unpackedString := strings.Repeat(string(array[endCopy]), number)
-	stringBuilder.WriteString(unpackedString)
+	unpackedString := strings.Repeat(string(receiver.array[receiver.endCopy]), number)
+	receiver.stringBuilder.WriteString(unpackedString)
 }
