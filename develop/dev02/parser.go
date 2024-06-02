@@ -6,11 +6,17 @@ import (
 	"unicode"
 )
 
+/*
+Parser structure for unpack string
+*/
 type Parser struct {
 	array         []rune
 	stringBuilder *strings.Builder
 }
 
+/*
+NewParser is the Parser constructor
+*/
 func NewParser(array []rune) *Parser {
 	return &Parser{
 		array:         array,
@@ -18,6 +24,9 @@ func NewParser(array []rune) *Parser {
 	}
 }
 
+/*
+Parse returns the unpacked string
+*/
 func (receiver *Parser) Parse() string {
 	arrayLength := len(receiver.array)
 
