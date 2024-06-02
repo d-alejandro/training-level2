@@ -21,32 +21,22 @@ func parseArrayRune(array []rune, arrayLength int) string {
 		}
 
 		endCopy = numberStartPosition - 1
-		copyString := string(array[startCopy:endCopy])
-		stringBuilder.WriteString(copyString)
+		copyAndWriteString(&stringBuilder, array, startCopy, endCopy)
 
 		numberEndPosition := searchNumberEndPosition(array, arrayLength, numberStartPosition+1)
-		index = numberEndPosition - 1
 
 		if array[endCopy] == '\\' {
 
 		} else {
-			numberFromString := string(array[numberStartPosition:numberEndPosition])
-			number, err := strconv.Atoi(numberFromString)
-
-			if err != nil {
-				panic(err)
-			}
-
-			unpackedString := strings.Repeat(string(array[endCopy]), number)
-			stringBuilder.WriteString(unpackedString)
+			convertAndRepeatSymbol(&stringBuilder, array, numberStartPosition, numberEndPosition, endCopy)
 		}
 
 		startCopy = numberEndPosition
+		index = numberEndPosition - 1
 	}
 
 	if startCopy < endCopy {
-		copyString := string(array[startCopy:endCopy])
-		stringBuilder.WriteString(copyString)
+		copyAndWriteString(&stringBuilder, array, startCopy, endCopy)
 	}
 
 	return stringBuilder.String()
@@ -61,6 +51,11 @@ func searchNumberStartPosition(array []rune, arrayLength int, searchFrom int) (s
 	return
 }
 
+func copyAndWriteString(stringBuilder *strings.Builder, array []rune, startCopy int, endCopy int) {
+	copyString := string(array[startCopy:endCopy])
+	stringBuilder.WriteString(copyString)
+}
+
 func searchNumberEndPosition(array []rune, arrayLength int, searchFrom int) int {
 	for index := searchFrom; index < arrayLength; index++ {
 		if !unicode.IsDigit(array[index]) {
@@ -68,4 +63,22 @@ func searchNumberEndPosition(array []rune, arrayLength int, searchFrom int) int 
 		}
 	}
 	return arrayLength
+}
+
+func convertAndRepeatSymbol(
+	stringBuilder *strings.Builder,
+	array []rune,
+	numberStartPosition int,
+	numberEndPosition int,
+	endCopy int,
+) {
+	numberFromString := string(array[numberStartPosition:numberEndPosition])
+	number, err := strconv.Atoi(numberFromString)
+
+	if err != nil {
+		panic(err)
+	}
+
+	unpackedString := strings.Repeat(string(array[endCopy]), number)
+	stringBuilder.WriteString(unpackedString)
 }
