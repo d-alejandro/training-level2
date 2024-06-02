@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"d-alejandro/training-level2/develop/dev02/parsing"
 	"fmt"
 	"log"
 	"os"
@@ -58,7 +59,7 @@ func unpackString(input string) string {
 	case arrayLength == 1:
 		outputMessage = string(arrayRune)
 	default:
-		parser := NewParser(arrayRune)
+		parser := parsing.NewParser(arrayRune)
 		outputMessage = parser.Parse()
 	}
 	return outputMessage
