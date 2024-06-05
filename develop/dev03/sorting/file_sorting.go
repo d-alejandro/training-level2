@@ -23,16 +23,7 @@ func (receiver *FileSorting) Sort(array []string) []string {
 		sortedArray[key] = receiver.splitAndTrimRow(regExpr, value)
 	}
 
-	slices.SortFunc(sortedArray, func(a, b []string) int {
-		firstValue := strings.ToLower(a[receiver.orderFlagDTO.ColumnNumberFlag])
-		secondValue := strings.ToLower(b[receiver.orderFlagDTO.ColumnNumberFlag])
-
-		if result := strings.Compare(firstValue, secondValue); result != 0 {
-			return result
-		}
-
-		return strings.Compare(b[receiver.orderFlagDTO.ColumnNumberFlag], a[receiver.orderFlagDTO.ColumnNumberFlag])
-	})
+	slices.SortFunc(sortedArray, receiver.runSortFunc)
 
 	joinedArray := make([]string, len(sortedArray))
 
@@ -63,4 +54,30 @@ func (receiver *FileSorting) splitAndTrimRow(regexp *regexp.Regexp, row string) 
 	}
 
 	return array
+}
+
+func (receiver *FileSorting) runSortFunc(a, b []string) int {
+	var columnStart int
+
+	if receiver.orderFlagDTO.ColumnNumberFlag > 0 {
+		columnStart = receiver.orderFlagDTO.ColumnNumberFlag - 1
+	}
+
+	firstValue := strings.ToLower(a[columnStart])
+	secondValue := strings.ToLower(b[columnStart])
+
+	sortMethod := NewSortMethod(receiver.orderFlagDTO)
+
+	if result := sortMethod.Execute(firstValue, secondValue); result != 0 {
+		if receiver.orderFlagDTO.DescendingOrderFlag {
+			return -1 * result
+		}
+		return result
+	}
+
+	if receiver.orderFlagDTO.DescendingOrderFlag {
+		return strings.Compare(a[columnStart], b[columnStart])
+	}
+
+	return strings.Compare(b[columnStart], a[columnStart])
 }
