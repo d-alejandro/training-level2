@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"d-alejandro/training-level2/develop/dev03/sorting"
 	"flag"
 	"fmt"
 	"os"
@@ -38,8 +39,14 @@ import (
 ./task3 -r input.txt
 */
 func main() {
+	columnNumberFlag := flag.Int("k", 0, "column number")
+	endingSpaceFlag := flag.Bool("b", false, "ending space")
+	uniqueFlag := flag.Bool("u", false, "unique strings")
 	descendingOrderFlag := flag.Bool("r", false, "descending order")
 	sortByNumberFlag := flag.Bool("n", false, "sort by number")
+	monthNameFlag := flag.Bool("M", false, "month name, compare (unknown) < 'JAN' < ... < 'DEC'")
+	sortCheckFlag := flag.Bool("c", false, "sort check")
+	humanNumericFlag := flag.Bool("h", false, "compare human readable numbers (e.g., 2K 1G)")
 
 	flag.Parse()
 
@@ -52,9 +59,21 @@ func main() {
 
 	strings := readFile(arguments[0])
 
-	writeFile(strings)
+	flagDTO := &sorting.FlagDTO{
+		ColumnNumberFlag:    *columnNumberFlag,
+		EndingSpaceFlag:     *endingSpaceFlag,
+		UniqueFlag:          *uniqueFlag,
+		DescendingOrderFlag: *descendingOrderFlag,
+		SortByNumberFlag:    *sortByNumberFlag,
+		MonthNameFlag:       *monthNameFlag,
+		SortCheckFlag:       *sortCheckFlag,
+		HumanNumericFlag:    *humanNumericFlag,
+	}
 
-	fmt.Println(*descendingOrderFlag, *sortByNumberFlag, strings)
+	fileSorting := sorting.NewFileSorting(flagDTO)
+	sortedStrings := fileSorting.Sort(strings)
+
+	writeFile(sortedStrings)
 }
 
 func readFile(fileName string) []string {
