@@ -70,8 +70,8 @@ func main() {
 		HumanNumericFlag:    *humanNumericFlag,
 	}
 
-	fileSorting := sorting.NewFileSorting(flagDTO)
-	sortedStrings := fileSorting.Sort(strings)
+	arraySorting := sorting.NewArraySorting(flagDTO)
+	sortedStrings := arraySorting.Sort(strings)
 
 	writeFile(sortedStrings)
 }

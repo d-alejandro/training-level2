@@ -1,8 +1,8 @@
-computer  S  D 
-mouse S D
-LAPTOP S D
-data S D
-RedHat S D
-laptop       S2 D
-debian S D
-laptop S2 A 3
+computer 7 D
+mouse 3 D
+LAPTOP 7 D
+data 0 7
+RedHat 1 D
+laptop 3 D
+debian 4 D
+laptop 5 A 3

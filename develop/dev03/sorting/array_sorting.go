@@ -6,15 +6,15 @@ import (
 	"strings"
 )
 
-type FileSorting struct {
+type ArraySorting struct {
 	orderFlagDTO *FlagDTO
 }
 
-func NewFileSorting(orderFlagDTO *FlagDTO) *FileSorting {
-	return &FileSorting{orderFlagDTO}
+func NewArraySorting(orderFlagDTO *FlagDTO) *ArraySorting {
+	return &ArraySorting{orderFlagDTO}
 }
 
-func (receiver *FileSorting) Sort(array []string) []string {
+func (receiver *ArraySorting) Sort(array []string) []string {
 	sortedArray := make([][]string, len(array))
 
 	regExpr := regexp.MustCompile(`\S+\s*`)
@@ -34,7 +34,7 @@ func (receiver *FileSorting) Sort(array []string) []string {
 	return joinedArray
 }
 
-func (receiver *FileSorting) splitAndTrimRow(regexp *regexp.Regexp, row string) []string {
+func (receiver *ArraySorting) splitAndTrimRow(regexp *regexp.Regexp, row string) []string {
 	array := regexp.FindAllString(row, -1)
 
 	var functionTrim func(key int, value string)
@@ -56,7 +56,7 @@ func (receiver *FileSorting) splitAndTrimRow(regexp *regexp.Regexp, row string) 
 	return array
 }
 
-func (receiver *FileSorting) runSortFunc(a, b []string) int {
+func (receiver *ArraySorting) runSortFunc(a, b []string) int {
 	var columnStart int
 
 	if receiver.orderFlagDTO.ColumnNumberFlag > 0 {
