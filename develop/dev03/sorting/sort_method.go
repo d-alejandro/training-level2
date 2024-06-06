@@ -7,14 +7,23 @@ import (
 	"time"
 )
 
+/*
+SortMethod structure - sorting by characteristics
+*/
 type SortMethod struct {
 	orderFlagDTO *FlagDTO
 }
 
+/*
+NewSortMethod is the SortMethod constructor
+*/
 func NewSortMethod(orderFlagDTO *FlagDTO) *SortMethod {
 	return &SortMethod{orderFlagDTO}
 }
 
+/*
+Execute - returns the sort result
+*/
 func (receiver *SortMethod) Execute(firstValue, secondValue string) int {
 	if firstValue == secondValue {
 		return 0

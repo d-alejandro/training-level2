@@ -1,5 +1,8 @@
 package sorting
 
+/*
+FlagDTO - DTO for command line flags
+*/
 type FlagDTO struct {
 	ColumnNumberFlag    int
 	EndingSpaceFlag     bool

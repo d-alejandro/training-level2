@@ -7,11 +7,17 @@ import (
 	"strings"
 )
 
+/*
+ArraySorting structure - sort slice
+*/
 type ArraySorting struct {
 	orderFlagDTO       *FlagDTO
 	workingColumNumber int
 }
 
+/*
+NewArraySorting is the ArraySorting constructor
+*/
 func NewArraySorting(orderFlagDTO *FlagDTO) *ArraySorting {
 	workingColumNumber := 0
 
@@ -25,6 +31,9 @@ func NewArraySorting(orderFlagDTO *FlagDTO) *ArraySorting {
 	}
 }
 
+/*
+Sort - returns the sorted slice
+*/
 func (receiver *ArraySorting) Sort(array []string) []string {
 	var sortedArray [][]string
 
@@ -56,9 +65,9 @@ func (receiver *ArraySorting) Sort(array []string) []string {
 	if receiver.orderFlagDTO.SortCheckFlag {
 		isSorted := slices.IsSortedFunc(sortedArray, receiver.runSortFunc)
 		return []string{strconv.FormatBool(isSorted)}
-	} else {
-		slices.SortFunc(sortedArray, receiver.runSortFunc)
 	}
+
+	slices.SortFunc(sortedArray, receiver.runSortFunc)
 
 	return receiver.joinArray(sortedArray)
 }
