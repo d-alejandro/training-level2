@@ -75,20 +75,15 @@ func (receiver *ArraySorting) Sort(array []string) []string {
 func (receiver *ArraySorting) splitAndTrimRow(regexp *regexp.Regexp, row string) []string {
 	array := regexp.FindAllString(row, -1)
 
-	var functionTrim func(key int, value string)
-
 	if receiver.orderFlagDTO.EndingSpaceFlag {
-		functionTrim = func(key int, value string) {
+		for key, value := range array {
 			array[key] = strings.TrimRight(value, " ")
 		}
 	} else {
-		functionTrim = func(key int, value string) {
-			array[key] = strings.TrimSuffix(value, " ")
+		secondToLastIndex := len(array) - 1
+		for key := 0; key < secondToLastIndex; key++ {
+			array[key] = strings.TrimSuffix(array[key], " ")
 		}
-	}
-
-	for key, value := range array {
-		functionTrim(key, value)
 	}
 
 	return array
