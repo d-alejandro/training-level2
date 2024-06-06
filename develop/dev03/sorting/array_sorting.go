@@ -54,13 +54,7 @@ func (receiver *ArraySorting) Sort(array []string) []string {
 
 	slices.SortFunc(sortedArray, receiver.runSortFunc)
 
-	joinedArray := make([]string, len(sortedArray))
-
-	for index, value := range sortedArray {
-		joinedArray[index] = strings.Join(value, " ")
-	}
-
-	return joinedArray
+	return receiver.joinArray(sortedArray)
 }
 
 func (receiver *ArraySorting) splitAndTrimRow(regexp *regexp.Regexp, row string) []string {
@@ -103,4 +97,14 @@ func (receiver *ArraySorting) runSortFunc(a, b []string) int {
 	}
 
 	return strings.Compare(b[receiver.workingColumNumber], a[receiver.workingColumNumber])
+}
+
+func (receiver *ArraySorting) joinArray(sortedArray [][]string) []string {
+	joinedArray := make([]string, len(sortedArray))
+
+	for index, value := range sortedArray {
+		joinedArray[index] = strings.Join(value, " ")
+	}
+
+	return joinedArray
 }
