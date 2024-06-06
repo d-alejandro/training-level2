@@ -39,13 +39,13 @@ import (
 ./task3 -k 3 -M -r input.txt
 */
 func main() {
-	columnNumberFlag := flag.Int("k", 0, "column number")
-	endingSpaceFlag := flag.Bool("b", false, "ending space")
-	uniqueFlag := flag.Bool("u", false, "unique strings")
-	descendingOrderFlag := flag.Bool("r", false, "descending order")
-	sortByNumberFlag := flag.Bool("n", false, "sort by number")
-	monthNameFlag := flag.Bool("M", false, "month name, compare (unknown) < 'JAN' < ... < 'DEC'")
-	sortCheckFlag := flag.Bool("c", false, "sort check")
+	columnNumberFlag := flag.Int("k", 0, "sort by column number")
+	endingSpaceFlag := flag.Bool("b", false, "trim trailing spaces")
+	uniqueFlag := flag.Bool("u", false, "output only unique strings")
+	descendingOrderFlag := flag.Bool("r", false, "sort in descending order")
+	sortByNumberFlag := flag.Bool("n", false, "sort by numerical value")
+	monthNameFlag := flag.Bool("M", false, "sort by short month names, 'JAN' < ... < 'DEC'")
+	sortCheckFlag := flag.Bool("c", false, "check for sorted input; do not sort")
 	humanNumericFlag := flag.Bool("h", false, "compare human readable numbers (e.g., 2K 1G)")
 
 	flag.Parse()
@@ -56,8 +56,6 @@ func main() {
 		fmt.Println("Please set the input file name.")
 		os.Exit(1)
 	}
-
-	strings := readFile(arguments[0])
 
 	flagDTO := &sorting.FlagDTO{
 		ColumnNumberFlag:    *columnNumberFlag,
@@ -71,6 +69,7 @@ func main() {
 	}
 
 	arraySorting := sorting.NewArraySorting(flagDTO)
+	strings := readFile(arguments[0])
 	sortedStrings := arraySorting.Sort(strings)
 
 	writeFile(sortedStrings)
