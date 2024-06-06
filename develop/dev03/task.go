@@ -36,7 +36,7 @@ import (
 */
 
 /*
-./task3 -r input.txt
+./task3 -k 3 -M -r input.txt
 */
 func main() {
 	columnNumberFlag := flag.Int("k", 0, "column number")
