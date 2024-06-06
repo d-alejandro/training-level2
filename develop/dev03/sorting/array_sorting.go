@@ -7,20 +7,49 @@ import (
 )
 
 type ArraySorting struct {
-	orderFlagDTO *FlagDTO
+	orderFlagDTO       *FlagDTO
+	workingColumNumber int
 }
 
 func NewArraySorting(orderFlagDTO *FlagDTO) *ArraySorting {
-	return &ArraySorting{orderFlagDTO}
+	workingColumNumber := 0
+
+	if orderFlagDTO.ColumnNumberFlag > 0 {
+		workingColumNumber = orderFlagDTO.ColumnNumberFlag - 1
+	}
+
+	return &ArraySorting{
+		orderFlagDTO,
+		workingColumNumber,
+	}
 }
 
 func (receiver *ArraySorting) Sort(array []string) []string {
-	sortedArray := make([][]string, len(array))
+	var sortedArray [][]string
 
 	regExpr := regexp.MustCompile(`\S+\s*`)
 
+	var funcSplit func(key int, value string)
+	uniqueValuesMap := make(map[string]struct{})
+
+	if receiver.orderFlagDTO.UniqueFlag {
+		funcSplit = func(key int, value string) {
+			tempArray := receiver.splitAndTrimRow(regExpr, value)
+			tempValue := tempArray[receiver.workingColumNumber]
+
+			if _, isKeyExists := uniqueValuesMap[tempValue]; !isKeyExists {
+				uniqueValuesMap[tempValue] = struct{}{}
+				sortedArray = append(sortedArray, tempArray)
+			}
+		}
+	} else {
+		funcSplit = func(key int, value string) {
+			sortedArray = append(sortedArray, receiver.splitAndTrimRow(regExpr, value))
+		}
+	}
+
 	for key, value := range array {
-		sortedArray[key] = receiver.splitAndTrimRow(regExpr, value)
+		funcSplit(key, value)
 	}
 
 	slices.SortFunc(sortedArray, receiver.runSortFunc)
@@ -57,14 +86,8 @@ func (receiver *ArraySorting) splitAndTrimRow(regexp *regexp.Regexp, row string)
 }
 
 func (receiver *ArraySorting) runSortFunc(a, b []string) int {
-	var columnStart int
-
-	if receiver.orderFlagDTO.ColumnNumberFlag > 0 {
-		columnStart = receiver.orderFlagDTO.ColumnNumberFlag - 1
-	}
-
-	firstValue := strings.ToLower(a[columnStart])
-	secondValue := strings.ToLower(b[columnStart])
+	firstValue := strings.ToLower(a[receiver.workingColumNumber])
+	secondValue := strings.ToLower(b[receiver.workingColumNumber])
 
 	sortMethod := NewSortMethod(receiver.orderFlagDTO)
 
@@ -76,8 +99,8 @@ func (receiver *ArraySorting) runSortFunc(a, b []string) int {
 	}
 
 	if receiver.orderFlagDTO.DescendingOrderFlag {
-		return strings.Compare(a[columnStart], b[columnStart])
+		return strings.Compare(a[receiver.workingColumNumber], b[receiver.workingColumNumber])
 	}
 
-	return strings.Compare(b[columnStart], a[columnStart])
+	return strings.Compare(b[receiver.workingColumNumber], a[receiver.workingColumNumber])
 }
