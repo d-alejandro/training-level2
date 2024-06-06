@@ -3,6 +3,7 @@ package sorting
 import (
 	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 )
 
@@ -52,7 +53,12 @@ func (receiver *ArraySorting) Sort(array []string) []string {
 		funcSplit(key, value)
 	}
 
-	slices.SortFunc(sortedArray, receiver.runSortFunc)
+	if receiver.orderFlagDTO.SortCheckFlag {
+		isSorted := slices.IsSortedFunc(sortedArray, receiver.runSortFunc)
+		return []string{strconv.FormatBool(isSorted)}
+	} else {
+		slices.SortFunc(sortedArray, receiver.runSortFunc)
+	}
 
 	return receiver.joinArray(sortedArray)
 }
