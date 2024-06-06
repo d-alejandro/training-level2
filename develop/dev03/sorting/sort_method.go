@@ -1,6 +1,7 @@
 package sorting
 
 import (
+	"errors"
 	"strconv"
 	"strings"
 	"time"
@@ -26,6 +27,10 @@ func (receiver *SortMethod) Execute(firstValue, secondValue string) int {
 		}
 	case receiver.orderFlagDTO.MonthNameFlag:
 		if response, err := receiver.sortByMonth(firstValue, secondValue); err == nil {
+			return response
+		}
+	case receiver.orderFlagDTO.HumanNumericFlag:
+		if response, err := receiver.sortByHumanReadableSize(firstValue, secondValue); err == nil {
 			return response
 		}
 	}
@@ -71,4 +76,54 @@ func (receiver *SortMethod) sortByMonth(firstValue, secondValue string) (int, er
 	}
 
 	return firstValueMonth.Compare(secondValueMonth), nil
+}
+
+func (receiver *SortMethod) sortByHumanReadableSize(firstValue, secondValue string) (int, error) {
+	var (
+		firstValueSuffix   string
+		secondValueSuffix  string
+		firstValueString   string
+		secondValueString  string
+		firstSuffixNumber  int
+		secondSuffixNumber int
+		isKeyExists        bool
+	)
+
+	suffixes := map[string]int{
+		"b": 1,
+		"k": 2,
+		"m": 3,
+		"g": 4,
+		"t": 5,
+		"p": 6,
+		"e": 7,
+	}
+
+	firstValueLength := len(firstValue)
+	firstValueSuffix = firstValue[firstValueLength-1:]
+
+	if firstSuffixNumber, isKeyExists = suffixes[firstValueSuffix]; !isKeyExists {
+		return 0, errors.New("first suffix number not found")
+	}
+
+	firstValueString = firstValue[:firstValueLength-1]
+
+	secondValueLength := len(secondValue)
+	secondValueSuffix = secondValue[secondValueLength-1:]
+
+	if secondSuffixNumber, isKeyExists = suffixes[secondValueSuffix]; !isKeyExists {
+		return 0, errors.New("second suffix number not found")
+	}
+
+	secondValueString = secondValue[:secondValueLength-1]
+
+	if firstSuffixNumber == secondSuffixNumber {
+		return receiver.sortByNumber(firstValueString, secondValueString)
+	}
+
+	if firstSuffixNumber < secondSuffixNumber {
+		return -1, nil
+	}
+
+	return 1, nil
 }
