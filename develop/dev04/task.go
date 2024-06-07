@@ -1,5 +1,11 @@
 package main
 
+import (
+	"fmt"
+	"slices"
+	"unsafe"
+)
+
 /*
 === Поиск анаграмм по словарю ===
 
@@ -20,5 +26,25 @@ package main
 */
 
 func main() {
+	array := [...]string{"Пятак", "Пятка", "Тяпка", "Листок", "Слиток", "Палка", "Столик"}
 
+	const AnagramMaxLength = len(array) - 1
+
+	response := *search(unsafe.Pointer(&array))
+
+	for key, pointer := range response {
+		anagramArray := *(*[AnagramMaxLength]string)(pointer)
+
+		sliceFromAnagramArray := slices.DeleteFunc(anagramArray[:], func(value string) bool {
+			return value == ""
+		})
+
+		fmt.Println(key, sliceFromAnagramArray)
+	}
+}
+
+func search(array unsafe.Pointer) *map[string]unsafe.Pointer {
+	return &map[string]unsafe.Pointer{
+		"test": array,
+	}
 }
