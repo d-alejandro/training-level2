@@ -2,6 +2,9 @@ package main
 
 import (
 	"fmt"
+	"slices"
+	"strings"
+	"unicode"
 	"unsafe"
 )
 
@@ -35,9 +38,56 @@ func main() {
 }
 
 func searchAnagramFromArray(arrayPointer unsafe.Pointer) *map[string]unsafe.Pointer {
-	return &map[string]unsafe.Pointer{
-		"test": arrayPointer,
+	const ElementArrayMaxCount = 50
+
+	type tempSlice struct {
+		value       string
+		sortedValue string
 	}
+
+	stringSlice := convertArrayPointerToSlice(arrayPointer)
+
+	tempSlices := make([]tempSlice, len(stringSlice))
+
+	for key, value := range stringSlice {
+		lowerCaseString := strings.ToLower(value)
+
+		sortedString := []rune(lowerCaseString)
+		slices.Sort(sortedString)
+
+		tempSlices[key] = tempSlice{
+			value:       lowerCaseString,
+			sortedValue: string(sortedString),
+		}
+	}
+
+	slices.SortFunc(tempSlices, func(a, b tempSlice) int {
+		return strings.Compare(a.value, b.value)
+	})
+
+	tempMap := make(map[string][]string)
+
+	for _, tempSlice := range tempSlices {
+		tempMap[tempSlice.sortedValue] = append(tempMap[tempSlice.sortedValue], tempSlice.value)
+	}
+
+	outputMap := make(map[string]unsafe.Pointer)
+
+	for _, slice := range tempMap {
+		if len(slice) == 1 {
+			continue
+		}
+
+		tempArray := [ElementArrayMaxCount]string{}
+
+		for key, value := range slice[1:] {
+			tempArray[key] = value
+		}
+
+		outputMap[slice[0]] = unsafe.Pointer(&tempArray)
+	}
+
+	return &outputMap
 }
 
 func convertArrayPointerToSlice(arrayPointer unsafe.Pointer) []string {
@@ -53,6 +103,12 @@ func convertArrayPointerToSlice(arrayPointer unsafe.Pointer) []string {
 		value := *(*string)(unsafe.Pointer(uintptr(arrayPointer) + offset))
 
 		if value == "" {
+			break
+		}
+
+		firstSymbol := []rune(value[:2])[0]
+
+		if !unicode.Is(unicode.Cyrillic, firstSymbol) {
 			break
 		}
 
