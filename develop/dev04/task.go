@@ -28,66 +28,45 @@ import (
 */
 
 func main() {
-	array := [...]string{"Пятак", "Пятка", "Тяпка", "Листок", "Слиток", "Палка", "Столик"}
+	wordArray := [...]string{"Пятак", "Пятка", "Тяпка", "Листок", "Слиток", "Палка", "Столик"}
 
-	response := *searchAnagramFromArray(unsafe.Pointer(&array))
+	response := *searchAnagramFromArray(unsafe.Pointer(&wordArray))
 
-	for key, pointer := range response {
-		fmt.Println(key, convertArrayPointerToSlice(pointer))
+	for key, anagramSlice := range response {
+		fmt.Println(key, "=>", *anagramSlice)
 	}
 }
 
-func searchAnagramFromArray(arrayPointer unsafe.Pointer) *map[string]unsafe.Pointer {
-	const ElementArrayMaxCount = 50
+func searchAnagramFromArray(wordArrayPointer unsafe.Pointer) *map[string]*[]string {
+	wordSlice := convertArrayPointerToSlice(wordArrayPointer)
 
-	type tempSlice struct {
-		value       string
-		sortedValue string
-	}
+	structureSlice := make([]struct {
+		word       string
+		sortedWord string
+	}, len(wordSlice))
 
-	stringSlice := convertArrayPointerToSlice(arrayPointer)
+	for key, word := range wordSlice {
+		lowerCaseWord := strings.ToLower(word)
 
-	tempSlices := make([]tempSlice, len(stringSlice))
+		sortedWord := []rune(lowerCaseWord)
+		slices.Sort(sortedWord)
 
-	for key, value := range stringSlice {
-		lowerCaseString := strings.ToLower(value)
-
-		sortedString := []rune(lowerCaseString)
-		slices.Sort(sortedString)
-
-		tempSlices[key] = tempSlice{
-			value:       lowerCaseString,
-			sortedValue: string(sortedString),
+		structureSlice[key] = struct {
+			word       string
+			sortedWord string
+		}{
+			word:       lowerCaseWord,
+			sortedWord: string(sortedWord),
 		}
 	}
 
-	slices.SortFunc(tempSlices, func(a, b tempSlice) int {
-		return strings.Compare(a.value, b.value)
-	})
+	tempAnagramMap := make(map[string][]string)
 
-	tempMap := make(map[string][]string)
-
-	for _, tempSlice := range tempSlices {
-		tempMap[tempSlice.sortedValue] = append(tempMap[tempSlice.sortedValue], tempSlice.value)
+	for _, structure := range structureSlice {
+		tempAnagramMap[structure.sortedWord] = append(tempAnagramMap[structure.sortedWord], structure.word)
 	}
 
-	outputMap := make(map[string]unsafe.Pointer)
-
-	for _, slice := range tempMap {
-		if len(slice) == 1 {
-			continue
-		}
-
-		tempArray := [ElementArrayMaxCount]string{}
-
-		for key, value := range slice[1:] {
-			tempArray[key] = value
-		}
-
-		outputMap[slice[0]] = unsafe.Pointer(&tempArray)
-	}
-
-	return &outputMap
+	return transformAnagramMap(tempAnagramMap)
 }
 
 func convertArrayPointerToSlice(arrayPointer unsafe.Pointer) []string {
@@ -118,4 +97,24 @@ func convertArrayPointerToSlice(arrayPointer unsafe.Pointer) []string {
 	}
 
 	return stringSlice
+}
+
+func transformAnagramMap(tempAnagramMap map[string][]string) *map[string]*[]string {
+	outputAnagramMap := make(map[string]*[]string)
+
+	for _, anagramSlice := range tempAnagramMap {
+		if len(anagramSlice) == 1 {
+			continue
+		}
+
+		tempAnagramSlice := anagramSlice[1:]
+
+		slices.SortFunc(tempAnagramSlice, func(a, b string) int {
+			return strings.Compare(a, b)
+		})
+
+		outputAnagramMap[anagramSlice[0]] = &tempAnagramSlice
+	}
+
+	return &outputAnagramMap
 }
