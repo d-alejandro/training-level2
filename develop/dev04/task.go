@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"slices"
 	"unsafe"
 )
 
@@ -28,23 +27,39 @@ import (
 func main() {
 	array := [...]string{"Пятак", "Пятка", "Тяпка", "Листок", "Слиток", "Палка", "Столик"}
 
-	const AnagramMaxLength = len(array) - 1
-
-	response := *search(unsafe.Pointer(&array))
+	response := *searchAnagramFromArray(unsafe.Pointer(&array))
 
 	for key, pointer := range response {
-		anagramArray := *(*[AnagramMaxLength]string)(pointer)
-
-		sliceFromAnagramArray := slices.DeleteFunc(anagramArray[:], func(value string) bool {
-			return value == ""
-		})
-
-		fmt.Println(key, sliceFromAnagramArray)
+		fmt.Println(key, convertArrayPointerToSlice(pointer))
 	}
 }
 
-func search(array unsafe.Pointer) *map[string]unsafe.Pointer {
+func searchAnagramFromArray(arrayPointer unsafe.Pointer) *map[string]unsafe.Pointer {
 	return &map[string]unsafe.Pointer{
-		"test": array,
+		"test": arrayPointer,
 	}
+}
+
+func convertArrayPointerToSlice(arrayPointer unsafe.Pointer) []string {
+	const StringDescriptorSize = unsafe.Sizeof("")
+
+	var (
+		stringSlice []string
+		index       uintptr
+	)
+
+	for {
+		offset := index * StringDescriptorSize
+		value := *(*string)(unsafe.Pointer(uintptr(arrayPointer) + offset))
+
+		if value == "" {
+			break
+		}
+
+		stringSlice = append(stringSlice, value)
+
+		index++
+	}
+
+	return stringSlice
 }
