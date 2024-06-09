@@ -19,12 +19,39 @@ func NewTextSearch(dto *TextSearchFlagDTO) *TextSearch {
 }
 
 func (receiver *TextSearch) Search(pattern string, rows []string) []string {
-	var searchRows []string
+	rowLength := len(rows)
+	outputSlice := make([]string, rowLength)
 
-	for _, row := range rows {
+	foundRowMap := receiver.findRows(pattern, rows)
+
+	switch {
+	case receiver.dto.RowCountAfter > 0:
+		for key := range outputSlice {
+			if value, ok := foundRowMap[key]; ok {
+				outputSlice[key] = value
+
+				lastIndex := key + 1 + receiver.dto.RowCountAfter
+
+				if lastIndex > rowLength {
+					lastIndex = rowLength
+				}
+
+				for index := key + 1; index < lastIndex; index++ {
+					outputSlice[index] = rows[index]
+				}
+			}
+		}
+	}
+
+	return outputSlice
+}
+
+func (receiver *TextSearch) findRows(pattern string, rows []string) map[int]string {
+	searchRows := make(map[int]string)
+
+	for key, row := range rows {
 		if strings.Contains(row, pattern) {
-			formattedRow := strings.ReplaceAll(row, pattern, receiver.colorToRed(pattern))
-			searchRows = append(searchRows, formattedRow)
+			searchRows[key] = strings.ReplaceAll(row, pattern, receiver.colorToRed(pattern))
 		}
 	}
 
