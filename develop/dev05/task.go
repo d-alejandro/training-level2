@@ -49,9 +49,14 @@ func main() {
 	}
 
 	textSearch := search.NewTextSearch(textSearchFlagDTO)
-	rows := readFile(arguments[0])
-	response := textSearch.Search(rows)
-	fmt.Println(response)
+
+	pattern := arguments[0]
+	inputRows := readFile(arguments[1])
+	response := textSearch.Search(pattern, inputRows)
+
+	for _, outputRow := range response {
+		fmt.Println(outputRow)
+	}
 }
 
 func readFile(fileName string) []string {
@@ -80,8 +85,4 @@ func closeFile(file *os.File) {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-}
-
-func colorToRed(text string) string {
-	return "\u001B[31m" + text + "\u001B[0m"
 }
