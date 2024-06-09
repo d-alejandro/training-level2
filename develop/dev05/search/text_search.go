@@ -1,21 +1,16 @@
 package search
 
-import "strings"
+import (
+	"slices"
+	"strings"
+)
 
 type TextSearch struct {
-	dto        *TextSearchFlagDTO
-	colorToRed func(text string) string
+	dto *TextSearchFlagDTO
 }
 
 func NewTextSearch(dto *TextSearchFlagDTO) *TextSearch {
-	funcColorToRed := func(text string) string {
-		return "\u001B[31m" + text + "\u001B[0m"
-	}
-
-	return &TextSearch{
-		dto:        dto,
-		colorToRed: funcColorToRed,
-	}
+	return &TextSearch{dto}
 }
 
 func (receiver *TextSearch) Search(pattern string, rows []string) []string {
@@ -43,7 +38,7 @@ func (receiver *TextSearch) Search(pattern string, rows []string) []string {
 		}
 	}
 
-	return outputSlice
+	return receiver.compactAndReplaceSlice(outputSlice)
 }
 
 func (receiver *TextSearch) findRows(pattern string, rows []string) map[int]string {
@@ -51,9 +46,41 @@ func (receiver *TextSearch) findRows(pattern string, rows []string) map[int]stri
 
 	for key, row := range rows {
 		if strings.Contains(row, pattern) {
-			searchRows[key] = strings.ReplaceAll(row, pattern, receiver.colorToRed(pattern))
+			colorText := "\u001B[31m" + pattern + "\u001B[0m"
+			searchRows[key] = strings.ReplaceAll(row, pattern, colorText)
 		}
 	}
 
 	return searchRows
+}
+
+func (receiver *TextSearch) compactAndReplaceSlice(rows []string) []string {
+	tempSlice := slices.CompactFunc(rows, func(a string, b string) bool {
+		if a == "" && a == b {
+			return true
+		}
+		return false
+	})
+
+	firstIndex := 0
+
+	if tempSlice[firstIndex] == "" {
+		firstIndex++
+	}
+
+	lastIndex := len(tempSlice)
+
+	if tempSlice[lastIndex-1] == "" {
+		lastIndex--
+	}
+
+	tempSlice = slices.Clone(tempSlice[firstIndex:lastIndex])
+
+	for key, value := range tempSlice {
+		if value == "" {
+			tempSlice[key] = "\u001B[34m--\u001B[0m"
+		}
+	}
+
+	return tempSlice
 }
