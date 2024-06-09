@@ -70,7 +70,10 @@ func searchAnagramFromArray(wordArrayPointer unsafe.Pointer) *map[string]*[]stri
 }
 
 func convertArrayPointerToSlice(arrayPointer unsafe.Pointer) []string {
-	const StringDescriptorSize = unsafe.Sizeof("")
+	const (
+		StringDescriptorSize = unsafe.Sizeof("")
+		WordMaxLengthBytes   = 30
+	)
 
 	var (
 		stringSlice []string
@@ -81,7 +84,7 @@ func convertArrayPointerToSlice(arrayPointer unsafe.Pointer) []string {
 		offset := index * StringDescriptorSize
 		value := *(*string)(unsafe.Pointer(uintptr(arrayPointer) + offset))
 
-		if value == "" {
+		if value == "" || len(value) > WordMaxLengthBytes {
 			break
 		}
 
