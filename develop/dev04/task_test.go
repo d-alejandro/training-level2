@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"reflect"
 	"testing"
 	"unsafe"
@@ -36,7 +37,14 @@ func Test_searchAnagramFromArray(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			if result := searchAnagramFromArray(test.input); !reflect.DeepEqual(result, test.expected) {
-				t.Errorf("convertArrayPointerToSlice() = %v, expected %v", result, test.expected)
+				resultJSON, _ := json.MarshalIndent(result, "", "  ")
+				expectedJSON, _ := json.MarshalIndent(test.expected, "", "  ")
+
+				t.Errorf(
+					"convertArrayPointerToSlice() = %s, \nexpected %v",
+					string(resultJSON),
+					string(expectedJSON),
+				)
 			}
 		})
 	}
