@@ -102,10 +102,10 @@ func convertArrayPointerToSlice(arrayPointer unsafe.Pointer) []string {
 	return stringSlice
 }
 
-func transformAnagramMap(tempAnagramMap map[string][]string) *map[string]*[]string {
+func transformAnagramMap(anagramMap map[string][]string) *map[string]*[]string {
 	outputAnagramMap := make(map[string]*[]string)
 
-	for _, anagramSlice := range tempAnagramMap {
+	for _, anagramSlice := range anagramMap {
 		if len(anagramSlice) == 1 {
 			continue
 		}
