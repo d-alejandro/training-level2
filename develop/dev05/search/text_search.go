@@ -24,6 +24,8 @@ func (receiver *TextSearch) Search(pattern string, rows []string) []string {
 		outputSlice = outputMethodService.ExecuteForRowsAfterFlag(receiver.dto.RowsAfterFlag)
 	case receiver.dto.RowsBeforeFlag > 0:
 		outputSlice = outputMethodService.ExecuteForRowsBeforeFlag(receiver.dto.RowsBeforeFlag)
+	case receiver.dto.RowsContextFlag > 0:
+		outputSlice = outputMethodService.ExecuteForRowsContextFlag(receiver.dto.RowsContextFlag)
 	}
 
 	return receiver.compactAndReplaceSlice(outputSlice)

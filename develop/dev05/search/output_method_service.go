@@ -57,3 +57,16 @@ func (receiver *OutputMethodService) ExecuteForRowsBeforeFlag(rowCountBefore int
 
 	return outputSlice
 }
+
+func (receiver *OutputMethodService) ExecuteForRowsContextFlag(rowContext int) []string {
+	outputSliceFirst := receiver.ExecuteForRowsAfterFlag(rowContext)
+	outputSliceSecond := receiver.ExecuteForRowsBeforeFlag(rowContext)
+
+	for key, value := range outputSliceFirst {
+		if value == "" {
+			outputSliceFirst[key] = outputSliceSecond[key]
+		}
+	}
+
+	return outputSliceFirst
+}
