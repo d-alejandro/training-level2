@@ -14,28 +14,16 @@ func NewTextSearch(dto *TextSearchFlagDTO) *TextSearch {
 }
 
 func (receiver *TextSearch) Search(pattern string, rows []string) []string {
-	rowLength := len(rows)
-	outputSlice := make([]string, rowLength)
+	var outputSlice []string
 
 	foundRowMap := receiver.findRows(pattern, rows)
+	outputMethodService := NewOutputMethodService(rows, foundRowMap)
 
 	switch {
 	case receiver.dto.RowsAfterFlag > 0:
-		for key := range outputSlice {
-			if value, ok := foundRowMap[key]; ok {
-				outputSlice[key] = value
-
-				lastIndex := key + 1 + receiver.dto.RowsAfterFlag
-
-				if lastIndex > rowLength {
-					lastIndex = rowLength
-				}
-
-				for index := key + 1; index < lastIndex; index++ {
-					outputSlice[index] = rows[index]
-				}
-			}
-		}
+		outputSlice = outputMethodService.ExecuteForRowsAfterFlag(receiver.dto.RowsAfterFlag)
+	case receiver.dto.RowsBeforeFlag > 0:
+		outputSlice = outputMethodService.ExecuteForRowsBeforeFlag(receiver.dto.RowsBeforeFlag)
 	}
 
 	return receiver.compactAndReplaceSlice(outputSlice)
