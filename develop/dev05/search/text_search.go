@@ -20,12 +20,12 @@ func (receiver *TextSearch) Search(pattern string, rows []string) []string {
 	foundRowMap := receiver.findRows(pattern, rows)
 
 	switch {
-	case receiver.dto.RowCountAfter > 0:
+	case receiver.dto.RowsAfterFlag > 0:
 		for key := range outputSlice {
 			if value, ok := foundRowMap[key]; ok {
 				outputSlice[key] = value
 
-				lastIndex := key + 1 + receiver.dto.RowCountAfter
+				lastIndex := key + 1 + receiver.dto.RowsAfterFlag
 
 				if lastIndex > rowLength {
 					lastIndex = rowLength

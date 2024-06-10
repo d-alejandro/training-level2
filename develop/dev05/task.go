@@ -27,10 +27,14 @@ import (
 */
 
 func main() {
-	rowCountAfter := flag.Int("A", 0, "print row count after")
-	rowCountBefore := flag.Int("B", 0, "print row count before")
-	rowCountAround := flag.Int("C", 0, "print row count around")
-	rowCount := flag.Int("c", 0, "print row count")
+	rowsAfterFlag := flag.Int("A", 0, "print rows after")
+	rowsBeforeFlag := flag.Int("B", 0, "print rows before")
+	rowsContextFlag := flag.Int("C", 0, "print rows around")
+	countFlag := flag.Bool("c", false, "print row number")
+	ignoreCaseFlag := flag.Bool("i", false, "ignore case")
+	invertFlag := flag.Bool("v", false, "invert")
+	fixedFlag := flag.Bool("F", false, "fixed")
+	lineNumFlag := flag.Bool("n", false, "line num")
 
 	flag.Parse()
 
@@ -42,10 +46,14 @@ func main() {
 	}
 
 	textSearchFlagDTO := &search.TextSearchFlagDTO{
-		RowCountAfter:  *rowCountAfter,
-		RowCountBefore: *rowCountBefore,
-		RowCountAround: *rowCountAround,
-		RowCount:       *rowCount,
+		RowsAfterFlag:   *rowsAfterFlag,
+		RowsBeforeFlag:  *rowsBeforeFlag,
+		RowsContextFlag: *rowsContextFlag,
+		CountFlag:       *countFlag,
+		IgnoreCaseFlag:  *ignoreCaseFlag,
+		InvertFlag:      *invertFlag,
+		FixedFlag:       *fixedFlag,
+		LineNumFlag:     *lineNumFlag,
 	}
 
 	textSearch := search.NewTextSearch(textSearchFlagDTO)
