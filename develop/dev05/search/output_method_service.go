@@ -70,3 +70,13 @@ func (receiver *OutputMethodService) ExecuteForRowsContextFlag(rowContext int) [
 
 	return outputSliceFirst
 }
+
+func (receiver *OutputMethodService) ExecuteWithoutFlags() []string {
+	outputSlice := make([]string, receiver.outputSliceLength)
+
+	for key, value := range receiver.foundRowMap {
+		outputSlice[key] = value
+	}
+
+	return outputSlice
+}

@@ -1,7 +1,9 @@
 package search
 
 import (
+	"fmt"
 	"slices"
+	"strconv"
 	"strings"
 )
 
@@ -22,13 +24,28 @@ func (receiver *TextSearch) Search(pattern string, rows []string) []string {
 	switch {
 	case receiver.dto.RowsAfterFlag > 0:
 		outputSlice = outputMethodService.ExecuteForRowsAfterFlag(receiver.dto.RowsAfterFlag)
+		receiver.addLineNumIfFlagSet(outputSlice, foundRowMap)
+		outputSlice = receiver.compactAndReplaceSlice(outputSlice)
 	case receiver.dto.RowsBeforeFlag > 0:
 		outputSlice = outputMethodService.ExecuteForRowsBeforeFlag(receiver.dto.RowsBeforeFlag)
+		receiver.addLineNumIfFlagSet(outputSlice, foundRowMap)
+		outputSlice = receiver.compactAndReplaceSlice(outputSlice)
 	case receiver.dto.RowsContextFlag > 0:
 		outputSlice = outputMethodService.ExecuteForRowsContextFlag(receiver.dto.RowsContextFlag)
+		receiver.addLineNumIfFlagSet(outputSlice, foundRowMap)
+		outputSlice = receiver.compactAndReplaceSlice(outputSlice)
+	case receiver.dto.CountFlag:
+		resultRowCount := strconv.Itoa(len(foundRowMap))
+		return []string{resultRowCount}
+	default:
+		outputSlice = outputMethodService.ExecuteWithoutFlags()
+		receiver.addLineNumIfFlagSet(outputSlice, foundRowMap)
+		outputSlice = slices.DeleteFunc(outputSlice, func(row string) bool {
+			return row == ""
+		})
 	}
 
-	return receiver.compactAndReplaceSlice(outputSlice)
+	return outputSlice
 }
 
 func (receiver *TextSearch) findRows(pattern string, rows []string) map[int]string {
@@ -42,6 +59,28 @@ func (receiver *TextSearch) findRows(pattern string, rows []string) map[int]stri
 	}
 
 	return searchRows
+}
+
+func (receiver *TextSearch) addLineNumIfFlagSet(outputSlice []string, foundRowMap map[int]string) {
+	if !receiver.dto.LineNumFlag {
+		return
+	}
+
+	for key, row := range outputSlice {
+		if row == "" {
+			continue
+		}
+
+		var symbol string
+
+		if _, ok := foundRowMap[key]; ok {
+			symbol = ":"
+		} else {
+			symbol = "-"
+		}
+
+		outputSlice[key] = fmt.Sprintf("\u001B[32m%d\u001B[0m\u001B[34m%s\u001B[0m%s", key+1, symbol, row)
+	}
 }
 
 func (receiver *TextSearch) compactAndReplaceSlice(rows []string) []string {
