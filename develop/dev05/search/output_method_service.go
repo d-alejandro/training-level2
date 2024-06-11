@@ -73,19 +73,17 @@ func (receiver *OutputMethodService) ExecuteForRowsBeforeFlag(rowCountBefore int
 }
 
 /*
+ExecuteForRowsAfterAndBeforeFlag method
+*/
+func (receiver *OutputMethodService) ExecuteForRowsAfterAndBeforeFlag(rowCountAfter, rowCountBefore int) []string {
+	return receiver.joinOutputSlices(rowCountAfter, rowCountBefore)
+}
+
+/*
 ExecuteForRowsContextFlag method
 */
 func (receiver *OutputMethodService) ExecuteForRowsContextFlag(rowContext int) []string {
-	outputSliceFirst := receiver.ExecuteForRowsAfterFlag(rowContext)
-	outputSliceSecond := receiver.ExecuteForRowsBeforeFlag(rowContext)
-
-	for key, value := range outputSliceFirst {
-		if value == "" {
-			outputSliceFirst[key] = outputSliceSecond[key]
-		}
-	}
-
-	return outputSliceFirst
+	return receiver.joinOutputSlices(rowContext, rowContext)
 }
 
 /*
@@ -112,4 +110,17 @@ func (receiver *OutputMethodService) ExecuteForInvertFlag() []string {
 	}
 
 	return outputSlice
+}
+
+func (receiver *OutputMethodService) joinOutputSlices(firstRowContext, secondRowContext int) []string {
+	outputSliceFirst := receiver.ExecuteForRowsAfterFlag(firstRowContext)
+	outputSliceSecond := receiver.ExecuteForRowsBeforeFlag(secondRowContext)
+
+	for key, value := range outputSliceFirst {
+		if value == "" {
+			outputSliceFirst[key] = outputSliceSecond[key]
+		}
+	}
+
+	return outputSliceFirst
 }

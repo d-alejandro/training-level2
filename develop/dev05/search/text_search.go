@@ -32,6 +32,13 @@ func (receiver *TextSearch) Search(pattern string, rows []string) []string {
 	outputMethodService := NewOutputMethodService(rows, foundRowMap)
 
 	switch {
+	case receiver.dto.RowsAfterFlag > 0 && receiver.dto.RowsBeforeFlag > 0:
+		outputSlice = outputMethodService.ExecuteForRowsAfterAndBeforeFlag(
+			receiver.dto.RowsAfterFlag,
+			receiver.dto.RowsBeforeFlag,
+		)
+		receiver.addLineNumIfFlagSet(outputSlice, foundRowMap)
+		outputSlice = receiver.compactAndReplaceSlice(outputSlice)
 	case receiver.dto.RowsAfterFlag > 0:
 		outputSlice = outputMethodService.ExecuteForRowsAfterFlag(receiver.dto.RowsAfterFlag)
 		receiver.addLineNumIfFlagSet(outputSlice, foundRowMap)
