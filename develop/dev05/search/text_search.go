@@ -8,14 +8,23 @@ import (
 	"strings"
 )
 
+/*
+TextSearch structure
+*/
 type TextSearch struct {
 	dto *TextSearchFlagDTO
 }
 
+/*
+NewTextSearch constructor
+*/
 func NewTextSearch(dto *TextSearchFlagDTO) *TextSearch {
 	return &TextSearch{dto}
 }
 
+/*
+Search method
+*/
 func (receiver *TextSearch) Search(pattern string, rows []string) []string {
 	var outputSlice []string
 

@@ -2,12 +2,18 @@ package search
 
 import "slices"
 
+/*
+OutputMethodService structure
+*/
 type OutputMethodService struct {
 	inputRows         []string
 	foundRowMap       map[int]string
 	outputSliceLength int
 }
 
+/*
+NewOutputMethodService constructor
+*/
 func NewOutputMethodService(inputRows []string, foundRowMap map[int]string) *OutputMethodService {
 	return &OutputMethodService{
 		inputRows:         inputRows,
@@ -16,6 +22,9 @@ func NewOutputMethodService(inputRows []string, foundRowMap map[int]string) *Out
 	}
 }
 
+/*
+ExecuteForRowsAfterFlag method
+*/
 func (receiver *OutputMethodService) ExecuteForRowsAfterFlag(rowCountAfter int) []string {
 	outputSlice := make([]string, receiver.outputSliceLength)
 
@@ -38,6 +47,9 @@ func (receiver *OutputMethodService) ExecuteForRowsAfterFlag(rowCountAfter int) 
 	return outputSlice
 }
 
+/*
+ExecuteForRowsBeforeFlag method
+*/
 func (receiver *OutputMethodService) ExecuteForRowsBeforeFlag(rowCountBefore int) []string {
 	outputSlice := make([]string, receiver.outputSliceLength)
 
@@ -60,6 +72,9 @@ func (receiver *OutputMethodService) ExecuteForRowsBeforeFlag(rowCountBefore int
 	return outputSlice
 }
 
+/*
+ExecuteForRowsContextFlag method
+*/
 func (receiver *OutputMethodService) ExecuteForRowsContextFlag(rowContext int) []string {
 	outputSliceFirst := receiver.ExecuteForRowsAfterFlag(rowContext)
 	outputSliceSecond := receiver.ExecuteForRowsBeforeFlag(rowContext)
@@ -73,6 +88,9 @@ func (receiver *OutputMethodService) ExecuteForRowsContextFlag(rowContext int) [
 	return outputSliceFirst
 }
 
+/*
+ExecuteWithoutFlags method
+*/
 func (receiver *OutputMethodService) ExecuteWithoutFlags() []string {
 	outputSlice := make([]string, receiver.outputSliceLength)
 
@@ -83,6 +101,9 @@ func (receiver *OutputMethodService) ExecuteWithoutFlags() []string {
 	return outputSlice
 }
 
+/*
+ExecuteForInvertFlag method
+*/
 func (receiver *OutputMethodService) ExecuteForInvertFlag() []string {
 	outputSlice := slices.Clone(receiver.inputRows)
 
