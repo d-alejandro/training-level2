@@ -26,6 +26,9 @@ import (
 Программа должна проходить все тесты. Код должен проходить проверки go vet и golint.
 */
 
+/*
+./task5 -n -B 2 '^lap' input.txt
+*/
 func main() {
 	rowsAfterFlag := flag.Int("A", 0, "print rows after")
 	rowsBeforeFlag := flag.Int("B", 0, "print rows before")
