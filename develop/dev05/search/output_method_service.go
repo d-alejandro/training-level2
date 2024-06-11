@@ -1,5 +1,7 @@
 package search
 
+import "slices"
+
 type OutputMethodService struct {
 	inputRows         []string
 	foundRowMap       map[int]string
@@ -76,6 +78,16 @@ func (receiver *OutputMethodService) ExecuteWithoutFlags() []string {
 
 	for key, value := range receiver.foundRowMap {
 		outputSlice[key] = value
+	}
+
+	return outputSlice
+}
+
+func (receiver *OutputMethodService) ExecuteForInvertFlag() []string {
+	outputSlice := slices.Clone(receiver.inputRows)
+
+	for key := range receiver.foundRowMap {
+		outputSlice[key] = ""
 	}
 
 	return outputSlice

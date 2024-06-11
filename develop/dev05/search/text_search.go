@@ -2,6 +2,7 @@ package search
 
 import (
 	"fmt"
+	"regexp"
 	"slices"
 	"strconv"
 	"strings"
@@ -37,12 +38,14 @@ func (receiver *TextSearch) Search(pattern string, rows []string) []string {
 	case receiver.dto.CountFlag:
 		resultRowCount := strconv.Itoa(len(foundRowMap))
 		return []string{resultRowCount}
+	case receiver.dto.InvertFlag:
+		outputSlice = outputMethodService.ExecuteForInvertFlag()
+		receiver.addLineNumIfFlagSet(outputSlice, foundRowMap)
+		outputSlice = receiver.removeEmptyLines(outputSlice)
 	default:
 		outputSlice = outputMethodService.ExecuteWithoutFlags()
 		receiver.addLineNumIfFlagSet(outputSlice, foundRowMap)
-		outputSlice = slices.DeleteFunc(outputSlice, func(row string) bool {
-			return row == ""
-		})
+		outputSlice = receiver.removeEmptyLines(outputSlice)
 	}
 
 	return outputSlice
@@ -51,10 +54,26 @@ func (receiver *TextSearch) Search(pattern string, rows []string) []string {
 func (receiver *TextSearch) findRows(pattern string, rows []string) map[int]string {
 	searchRows := make(map[int]string)
 
+	if receiver.dto.FixedFlag {
+		pattern = regexp.QuoteMeta(pattern)
+	}
+
+	if receiver.dto.IgnoreCaseFlag {
+		pattern = "(?i)" + pattern
+	}
+
+	regExpr := regexp.MustCompile(pattern)
+
 	for key, row := range rows {
-		if strings.Contains(row, pattern) {
-			colorText := "\u001B[31m" + pattern + "\u001B[0m"
-			searchRows[key] = strings.ReplaceAll(row, pattern, colorText)
+		result := regExpr.FindAllString(row, -1)
+
+		if result == nil {
+			continue
+		}
+
+		for _, value := range result {
+			colorText := "\u001B[31m" + value + "\u001B[0m"
+			searchRows[key] = strings.ReplaceAll(row, value, colorText)
 		}
 	}
 
@@ -112,4 +131,10 @@ func (receiver *TextSearch) compactAndReplaceSlice(rows []string) []string {
 	}
 
 	return tempSlice
+}
+
+func (receiver *TextSearch) removeEmptyLines(outputSlice []string) []string {
+	return slices.DeleteFunc(outputSlice, func(row string) bool {
+		return row == ""
+	})
 }
