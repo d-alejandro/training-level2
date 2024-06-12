@@ -29,6 +29,11 @@ func (receiver *TextSearch) Search(pattern string, rows []string) []string {
 	var outputSlice []string
 
 	foundRowMap := receiver.findRows(pattern, rows)
+
+	if len(foundRowMap) == 0 {
+		return outputSlice
+	}
+
 	outputMethodService := NewOutputMethodService(rows, foundRowMap)
 
 	switch {
