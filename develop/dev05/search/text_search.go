@@ -31,6 +31,9 @@ func (receiver *TextSearch) Search(pattern string, rows []string) []string {
 	foundRowMap := receiver.findRows(pattern, rows)
 
 	if len(foundRowMap) == 0 {
+		if receiver.dto.CountFlag {
+			return []string{"0"}
+		}
 		return outputSlice
 	}
 
@@ -56,13 +59,25 @@ func (receiver *TextSearch) Search(pattern string, rows []string) []string {
 		outputSlice = outputMethodService.ExecuteForRowsContextFlag(receiver.dto.RowsContextFlag)
 		receiver.addLineNumIfFlagSet(outputSlice, foundRowMap)
 		outputSlice = receiver.compactAndReplaceSlice(outputSlice)
-	case receiver.dto.CountFlag:
-		resultRowCount := strconv.Itoa(len(foundRowMap))
-		return []string{resultRowCount}
 	case receiver.dto.InvertFlag:
 		outputSlice = outputMethodService.ExecuteForInvertFlag()
 		receiver.addLineNumIfFlagSet(outputSlice, foundRowMap)
 		outputSlice = receiver.removeEmptyLines(outputSlice)
+
+		if !receiver.dto.CountFlag {
+			break
+		}
+		fallthrough
+	case receiver.dto.CountFlag:
+		var resultRowCount string
+
+		if receiver.dto.InvertFlag {
+			resultRowCount = strconv.Itoa(len(outputSlice))
+		} else {
+			resultRowCount = strconv.Itoa(len(foundRowMap))
+		}
+
+		return []string{resultRowCount}
 	default:
 		outputSlice = outputMethodService.ExecuteWithoutFlags()
 		receiver.addLineNumIfFlagSet(outputSlice, foundRowMap)
