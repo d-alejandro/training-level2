@@ -3,6 +3,7 @@ package cut
 import (
 	"fmt"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -23,10 +24,16 @@ func (receiver *TextCut) Cut(inputRows []string) []string {
 	for _, inputRow := range inputRows {
 		splitRows := strings.Split(inputRow, receiver.dto.DelimiterFlag)
 
+		splitRowsLength := len(splitRows)
+
 		var outputRow string
 
-		if len(splitRows) > 1 {
+		if splitRowsLength > 1 {
 			for index, fieldNumber := range fields {
+				if fieldNumber >= splitRowsLength {
+					continue
+				}
+
 				if index == 0 {
 					outputRow = splitRows[fieldNumber]
 					continue
@@ -60,6 +67,8 @@ func (receiver *TextCut) convertValuesOfFieldsFlag() []int {
 
 		integerArray = append(integerArray, number-1)
 	}
+
+	slices.Sort(integerArray)
 
 	return integerArray
 }
