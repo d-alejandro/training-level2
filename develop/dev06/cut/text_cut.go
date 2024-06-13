@@ -8,14 +8,23 @@ import (
 	"strings"
 )
 
+/*
+TextCut structure
+*/
 type TextCut struct {
 	dto *TextCutFlagDTO
 }
 
+/*
+NewTextCut constructor
+*/
 func NewTextCut(dto *TextCutFlagDTO) *TextCut {
 	return &TextCut{dto}
 }
 
+/*
+Cut method
+*/
 func (receiver *TextCut) Cut(inputRows []string) []string {
 	fields := receiver.convertValuesOfFieldsFlag()
 

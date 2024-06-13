@@ -21,6 +21,20 @@ import (
 Программа должна проходить все тесты. Код должен проходить проверки go vet и golint.
 */
 
+/*
+./task6 -f 1,4 -d '-'
+Please enter your text:
+computer-7-Jan-20K
+mouse-3-Jul-2M
+laptop-5-Jan-30B
+debian-4-Dec-1E
+
+Response:
+computer-20K
+mouse-2M
+laptop-30B
+debian-1E
+*/
 func main() {
 	fieldsFlag := flag.String("f", "1", "select only these fields; by default selects by field 1")
 	delimiterFlag := flag.String("d", "\t", "use field delimiter")
