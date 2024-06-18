@@ -84,9 +84,9 @@ func mergeChannels(inputChannels ...<-chan any) <-chan any {
 	waitGroup.Add(1)
 
 	for _, inputChannel := range inputChannels {
-		go func() {
+		go func(inputChan <-chan any) {
 			for {
-				if _, isClose := <-inputChannel; isClose == false {
+				if _, isClose := <-inputChan; isClose == false {
 					mutex.Lock()
 					if quitFlag == false {
 						quitFlag = true
@@ -95,7 +95,7 @@ func mergeChannels(inputChannels ...<-chan any) <-chan any {
 					mutex.Unlock()
 				}
 			}
-		}()
+		}(inputChannel)
 	}
 
 	go func() {
