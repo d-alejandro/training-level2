@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"sync"
-	"sync/atomic"
 	"time"
 )
 
@@ -41,6 +40,10 @@ start := time.Now()
 fmt.Printf(“done after %v”, time.Since(start))
 */
 
+/*
+Output:
+done after 1.000331845s
+*/
 func main() {
 	var or func(channels ...<-chan interface{}) <-chan interface{}
 
@@ -73,7 +76,8 @@ func main() {
 func mergeChannels(inputChannels ...<-chan any) <-chan any {
 	var (
 		waitGroup     sync.WaitGroup
-		atomicBool    atomic.Bool
+		mutex         sync.Mutex
+		quitFlag      bool
 		outputChannel = make(chan any)
 	)
 
@@ -81,11 +85,15 @@ func mergeChannels(inputChannels ...<-chan any) <-chan any {
 
 	for _, inputChannel := range inputChannels {
 		go func() {
-			<-inputChannel
-
-			if atomicBool.Load() == false {
-				atomicBool.Store(true)
-				waitGroup.Done()
+			for {
+				if _, isClose := <-inputChannel; isClose == false {
+					mutex.Lock()
+					if quitFlag == false {
+						quitFlag = true
+						waitGroup.Done()
+					}
+					mutex.Unlock()
+				}
 			}
 		}()
 	}
