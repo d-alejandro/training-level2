@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -42,6 +44,8 @@ fmt.Printf(“done after %v”, time.Since(start))
 func main() {
 	var or func(channels ...<-chan interface{}) <-chan interface{}
 
+	or = mergeChannels
+
 	sig := func(after time.Duration) <-chan interface{} {
 		c := make(chan interface{})
 
@@ -64,4 +68,32 @@ func main() {
 	)
 
 	fmt.Printf("done after %v", time.Since(start))
+}
+
+func mergeChannels(inputChannels ...<-chan any) <-chan any {
+	var (
+		waitGroup     sync.WaitGroup
+		atomicBool    atomic.Bool
+		outputChannel = make(chan any)
+	)
+
+	waitGroup.Add(1)
+
+	for _, inputChannel := range inputChannels {
+		go func() {
+			<-inputChannel
+
+			if atomicBool.Load() == false {
+				atomicBool.Store(true)
+				waitGroup.Done()
+			}
+		}()
+	}
+
+	go func() {
+		defer close(outputChannel)
+		waitGroup.Wait()
+	}()
+
+	return outputChannel
 }
