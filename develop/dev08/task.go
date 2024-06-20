@@ -35,7 +35,9 @@ import (
 
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
-	handler := cmd.NewHandler()
+
+	forkExecResultChannel := make(chan string, 1)
+	handler := cmd.NewHandler(forkExecResultChannel)
 
 	printFirstLine()
 
@@ -43,6 +45,7 @@ func main() {
 		command := scanner.Text()
 
 		if command == "" {
+			readChannelAndOutputResult(forkExecResultChannel)
 			printFirstLine()
 			continue
 		}
@@ -61,8 +64,20 @@ func main() {
 
 		printFirstLine()
 	}
+
+	close(forkExecResultChannel)
 }
 
 func printFirstLine() {
 	fmt.Print("$ ")
+}
+
+func readChannelAndOutputResult(forkExecResultChannel <-chan string) {
+	select {
+	case result, ok := <-forkExecResultChannel:
+		if ok {
+			fmt.Println(result)
+		}
+	default:
+	}
 }

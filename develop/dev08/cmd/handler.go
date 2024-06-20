@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -9,10 +10,11 @@ import (
 )
 
 type Handler struct {
+	forkExecResultChannel chan<- string
 }
 
-func NewHandler() *Handler {
-	return &Handler{}
+func NewHandler(forkExecResultChannel chan<- string) *Handler {
+	return &Handler{forkExecResultChannel}
 }
 
 func (receiver *Handler) Execute(command string) (string, error) {
@@ -49,6 +51,22 @@ func (receiver *Handler) runForkExecCommand(command string) (string, error) {
 	if forkExecErr != nil {
 		return "", forkExecErr
 	}
+
+	go func() {
+		var waitStatus syscall.WaitStatus = 0
+
+		_, waitErr := syscall.Wait4(pid, &waitStatus, 0, nil)
+
+		resultStatus := "Done"
+
+		if waitErr != nil || waitStatus != 0 {
+			resultStatus = "Error"
+		}
+
+		result := fmt.Sprintf("%d %s", pid, resultStatus)
+
+		receiver.forkExecResultChannel <- result
+	}()
 
 	return strconv.Itoa(pid), nil
 }
