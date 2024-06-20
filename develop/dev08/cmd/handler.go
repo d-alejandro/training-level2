@@ -44,22 +44,7 @@ func (receiver *Handler) Execute(commandRow string) (string, error) {
 		return "Ok", nil
 	}
 
-	commandSlice := receiver.splitCommandRow(commandRow)
-
-	path, lookPathErr := exec.LookPath(commandSlice[0])
-	if lookPathErr != nil {
-		return "", lookPathErr
-	}
-
-	cmd := exec.Command(path, commandSlice[1:]...)
-
-	result, err := cmd.CombinedOutput()
-
-	if err != nil {
-		return "", err
-	}
-
-	return string(result), nil
+	return receiver.splitAndExecCommand(commandRow)
 }
 
 func (receiver *Handler) splitAndTrimString(command string) []string {
@@ -112,4 +97,23 @@ func (receiver *Handler) splitCommandRow(commandRow string) []string {
 	regExpr := regexp.MustCompile(`('.*')|(".*")|(\S+)`)
 
 	return regExpr.FindAllString(commandRow, -1)
+}
+
+func (receiver *Handler) splitAndExecCommand(commandRow string) (string, error) {
+	commandSlice := receiver.splitCommandRow(commandRow)
+
+	path, lookPathErr := exec.LookPath(commandSlice[0])
+
+	if lookPathErr != nil {
+		return "", lookPathErr
+	}
+
+	cmd := exec.Command(path, commandSlice[1:]...)
+	result, err := cmd.CombinedOutput()
+
+	if err != nil {
+		return "", err
+	}
+
+	return string(result), nil
 }
