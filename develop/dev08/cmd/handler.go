@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os/exec"
+	"regexp"
 	"strconv"
 	"strings"
 	"syscall"
@@ -17,24 +18,38 @@ func NewHandler(forkExecResultChannel chan<- string) *Handler {
 	return &Handler{forkExecResultChannel}
 }
 
-func (receiver *Handler) Execute(command string) (string, error) {
+func (receiver *Handler) Execute(commandRow string) (string, error) {
 	switch {
-	case strings.Contains(command, "&"):
-		commandStrings := receiver.splitAndTrimStrings(command)
+	case strings.Contains(commandRow, "&"):
+		commandStrings := receiver.splitAndTrimString(commandRow)
 
 		if len(commandStrings) != 2 || commandStrings[1] != "" {
-			return "", errors.New("invalid fork/exec-command")
+			return "", errors.New("invalid fork/exec-commandRow")
 		}
 
 		return receiver.runForkExecCommand(commandStrings[0])
-
-	case strings.Contains(command, "|"):
+	case strings.Contains(commandRow, "|"):
 	}
 
-	return command, nil
+	commandSlice := receiver.splitCommandRow(commandRow)
+
+	path, lookPathErr := exec.LookPath(commandSlice[0])
+	if lookPathErr != nil {
+		return "", lookPathErr
+	}
+
+	cmd := exec.Command(path, commandSlice[1:]...)
+
+	result, err := cmd.CombinedOutput()
+
+	if err != nil {
+		return "", err
+	}
+
+	return string(result), nil
 }
 
-func (receiver *Handler) splitAndTrimStrings(command string) []string {
+func (receiver *Handler) splitAndTrimString(command string) []string {
 	commandStrings := strings.Split(command, "&")
 	for index, commandString := range commandStrings {
 		commandStrings[index] = strings.TrimSpace(commandString)
@@ -43,7 +58,7 @@ func (receiver *Handler) splitAndTrimStrings(command string) []string {
 }
 
 func (receiver *Handler) runForkExecCommand(command string) (string, error) {
-	commandSlice := strings.Split(command, " ")
+	commandSlice := receiver.splitCommandRow(command)
 
 	path, lookPathErr := exec.LookPath(commandSlice[0])
 	if lookPathErr != nil {
@@ -73,4 +88,9 @@ func (receiver *Handler) runForkExecCommand(command string) (string, error) {
 	}()
 
 	return strconv.Itoa(pid), nil
+}
+
+func (receiver *Handler) splitCommandRow(commandRow string) []string {
+	regExpr := regexp.MustCompile(`('.*')|(".*")|(\S+)`)
+	return regExpr.FindAllString(commandRow, -1)
 }
