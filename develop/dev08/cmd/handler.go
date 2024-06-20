@@ -20,11 +20,7 @@ func NewHandler(forkExecResultChannel chan<- string) *Handler {
 func (receiver *Handler) Execute(command string) (string, error) {
 	switch {
 	case strings.Contains(command, "&"):
-		commandStrings := strings.Split(command, "&")
-
-		for index, commandString := range commandStrings {
-			commandStrings[index] = strings.TrimSpace(commandString)
-		}
+		commandStrings := receiver.splitAndTrimStrings(command)
 
 		if len(commandStrings) != 2 || commandStrings[1] != "" {
 			return "", errors.New("invalid fork/exec-command")
@@ -36,6 +32,14 @@ func (receiver *Handler) Execute(command string) (string, error) {
 	}
 
 	return command, nil
+}
+
+func (receiver *Handler) splitAndTrimStrings(command string) []string {
+	commandStrings := strings.Split(command, "&")
+	for index, commandString := range commandStrings {
+		commandStrings[index] = strings.TrimSpace(commandString)
+	}
+	return commandStrings
 }
 
 func (receiver *Handler) runForkExecCommand(command string) (string, error) {
