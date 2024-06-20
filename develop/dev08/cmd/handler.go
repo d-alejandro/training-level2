@@ -21,7 +21,7 @@ func NewHandler(forkExecResultChannel chan<- string) *Handler {
 
 func (receiver *Handler) Execute(commandRow string) (string, error) {
 	if strings.Contains(commandRow, "&") {
-		commandStrings := receiver.splitAndTrimString(commandRow)
+		commandStrings := receiver.splitAndTrimString(commandRow, "&")
 
 		if len(commandStrings) != 2 || commandStrings[1] != "" {
 			return "", errors.New("invalid fork/exec-commandRow")
@@ -29,7 +29,13 @@ func (receiver *Handler) Execute(commandRow string) (string, error) {
 
 		return receiver.runForkExecCommand(commandStrings[0])
 	} else if strings.Contains(commandRow, "|") {
-		//
+		commandStrings := receiver.splitAndTrimString(commandRow, "|")
+
+		if receiver.isContainValues(commandStrings) {
+			return "", errors.New("invalid pipes")
+		}
+
+		return "", nil
 	} else if _, isContain := strings.CutPrefix(commandRow, "cd"); isContain {
 		commandSlice := receiver.splitCommandRow(commandRow)
 
@@ -47,8 +53,8 @@ func (receiver *Handler) Execute(commandRow string) (string, error) {
 	return receiver.splitAndExecCommand(commandRow)
 }
 
-func (receiver *Handler) splitAndTrimString(command string) []string {
-	commandStrings := strings.Split(command, "&")
+func (receiver *Handler) splitAndTrimString(command string, separator string) []string {
+	commandStrings := strings.Split(command, separator)
 
 	for index, commandString := range commandStrings {
 		commandStrings[index] = strings.TrimSpace(commandString)
@@ -116,4 +122,8 @@ func (receiver *Handler) splitAndExecCommand(commandRow string) (string, error) 
 	}
 
 	return string(result), nil
+}
+
+func (receiver *Handler) isContainValues(commandStrings []string) bool {
+	return commandStrings[0] == "" || commandStrings[len(commandStrings)-1] == ""
 }
