@@ -40,6 +40,30 @@ func TestHandlerExecute(t *testing.T) {
 			expectedResponse: currentDirectory + "/cmd",
 			expectedError:    nil,
 		},
+		{
+			name:             "test pwd",
+			inputCommandRow:  `pwd`,
+			expectedResponse: currentDirectory + "\n",
+			expectedError:    nil,
+		},
+		{
+			name:             "test echo",
+			inputCommandRow:  `echo 'qwerty ty jjo'`,
+			expectedResponse: "qwerty ty jjo\n",
+			expectedError:    nil,
+		},
+		{
+			name:             "test kill",
+			inputCommandRow:  `kill -l SIGQUIT`,
+			expectedResponse: "3\n",
+			expectedError:    nil,
+		},
+		{
+			name:             "test ps",
+			inputCommandRow:  `ps -C ps -o comm`,
+			expectedResponse: "COMMAND\nps\n",
+			expectedError:    nil,
+		},
 	}
 
 	forkExecResultChannel := make(chan string, 1)
