@@ -84,7 +84,15 @@ func (receiver *Handler) runForkExecCommand(commandStrings []string) (string, er
 		return "", lookPathErr
 	}
 
-	pid, forkExecErr := syscall.ForkExec(path, commandStrings, nil)
+	attributes := &syscall.ProcAttr{
+		Files: []uintptr{
+			os.Stdin.Fd(),
+			os.Stdout.Fd(),
+			os.Stderr.Fd(),
+		},
+	}
+
+	pid, forkExecErr := syscall.ForkExec(path, commandStrings, attributes)
 
 	if forkExecErr != nil {
 		return "", forkExecErr
@@ -98,12 +106,14 @@ func (receiver *Handler) runForkExecCommand(commandStrings []string) (string, er
 func (receiver *Handler) waitForkExecCommandAndSendResult(pid int) {
 	var waitStatus syscall.WaitStatus = 0
 
-	_, waitErr := syscall.Wait4(pid, &waitStatus, 0, nil)
+	_, waitError := syscall.Wait4(pid, &waitStatus, 0, nil)
 
 	resultStatus := "Done"
 
-	if waitErr != nil || waitStatus != 0 {
-		resultStatus = "Error"
+	if waitError != nil {
+		resultStatus = waitError.Error()
+	} else if exitStatus := waitStatus.ExitStatus(); exitStatus != 0 {
+		resultStatus = "Exit " + strconv.Itoa(exitStatus)
 	}
 
 	result := fmt.Sprintf("%d %s", pid, resultStatus)
