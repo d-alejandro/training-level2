@@ -2,11 +2,20 @@ package main
 
 import (
 	"d-alejandro/training-level2/develop/dev08/cmd"
+	"fmt"
+	"os"
 	"strconv"
 	"testing"
 )
 
 func TestHandlerExecute(t *testing.T) {
+	currentDirectory, directoryError := os.Getwd()
+
+	if directoryError != nil {
+		fmt.Println("Error:", directoryError.Error())
+		return
+	}
+
 	tests := []struct {
 		name             string
 		inputCommandRow  string
@@ -25,6 +34,12 @@ func TestHandlerExecute(t *testing.T) {
 			expectedResponse: "7\n",
 			expectedError:    nil,
 		},
+		{
+			name:             "test cd",
+			inputCommandRow:  `cd cmd`,
+			expectedResponse: currentDirectory + "/cmd",
+			expectedError:    nil,
+		},
 	}
 
 	forkExecResultChannel := make(chan string, 1)
@@ -39,11 +54,29 @@ func TestHandlerExecute(t *testing.T) {
 				return
 			}
 
-			if test.expectedResponse == "integer PID" {
+			if test.name == "test fork/exec command" {
 				if pid, err := strconv.Atoi(response); err == nil && pid > 1 {
 					return
 				}
 				t.Errorf("handler.Execute() = '%v', expected '%v'", response, test.expectedResponse)
+				return
+			} else if test.name == "test cd" {
+				dir, dirError := os.Getwd()
+
+				if dirError != nil {
+					t.Error(dirError.Error())
+					return
+				}
+
+				if response != "Ok" || dir != test.expectedResponse {
+					t.Errorf(
+						"handler.Execute() = '%v', current directory '%v', expected '%v'",
+						response,
+						dir,
+						test.expectedResponse,
+					)
+					return
+				}
 				return
 			}
 
