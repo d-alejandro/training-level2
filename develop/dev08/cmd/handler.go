@@ -12,14 +12,23 @@ import (
 	"syscall"
 )
 
+/*
+Handler structure
+*/
 type Handler struct {
 	forkExecResultChannel chan<- string
 }
 
+/*
+NewHandler constructor
+*/
 func NewHandler(forkExecResultChannel chan<- string) *Handler {
 	return &Handler{forkExecResultChannel}
 }
 
+/*
+Execute method
+*/
 func (receiver *Handler) Execute(commandRow string) (string, error) {
 	if strings.Contains(commandRow, "&") {
 		commandStrings := receiver.splitBySeparatorAndTrimString(commandRow, "&")
