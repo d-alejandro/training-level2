@@ -35,15 +35,15 @@ func TestHandlerExecute(t *testing.T) {
 			expectedError:    nil,
 		},
 		{
-			name:             "test cd",
-			inputCommandRow:  `cd cmd`,
-			expectedResponse: currentDirectory + "/cmd",
-			expectedError:    nil,
-		},
-		{
 			name:             "test pwd",
 			inputCommandRow:  `pwd`,
 			expectedResponse: currentDirectory + "\n",
+			expectedError:    nil,
+		},
+		{
+			name:             "test cd",
+			inputCommandRow:  `cd cmd`,
+			expectedResponse: currentDirectory + "/cmd",
 			expectedError:    nil,
 		},
 		{
