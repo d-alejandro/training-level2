@@ -21,7 +21,7 @@ func NewHandler(forkExecResultChannel chan<- string) *Handler {
 
 func (receiver *Handler) Execute(commandRow string) (string, error) {
 	if strings.Contains(commandRow, "&") {
-		commandStrings := receiver.splitAndTrimString(commandRow, "&")
+		commandStrings := receiver.splitBySeparatorAndTrimString(commandRow, "&")
 
 		if len(commandStrings) != 2 || commandStrings[1] != "" {
 			return "", errors.New("invalid fork/exec-commandRow")
@@ -29,7 +29,7 @@ func (receiver *Handler) Execute(commandRow string) (string, error) {
 
 		return receiver.runForkExecCommand(commandStrings[0])
 	} else if strings.Contains(commandRow, "|") {
-		commandStrings := receiver.splitAndTrimString(commandRow, "|")
+		commandStrings := receiver.splitBySeparatorAndTrimString(commandRow, "|")
 
 		if receiver.isContainValues(commandStrings) {
 			return "", errors.New("invalid pipes")
@@ -37,23 +37,25 @@ func (receiver *Handler) Execute(commandRow string) (string, error) {
 
 		return "", nil
 	} else if _, isContain := strings.CutPrefix(commandRow, "cd"); isContain {
-		commandSlice := receiver.splitCommandRow(commandRow)
+		commandStrings := receiver.splitByRegExprCommandRow(commandRow)
 
-		if len(commandSlice) != 2 {
+		if len(commandStrings) != 2 {
 			return "", errors.New("invalid cd command")
 		}
 
-		if err := os.Chdir(commandSlice[1]); err != nil {
+		if err := os.Chdir(commandStrings[1]); err != nil {
 			return "", err
 		}
 
 		return "Ok", nil
 	}
 
-	return receiver.splitAndExecCommand(commandRow)
+	commandStrings := receiver.splitByRegExprCommandRow(commandRow)
+
+	return receiver.executeCommand(commandStrings)
 }
 
-func (receiver *Handler) splitAndTrimString(command string, separator string) []string {
+func (receiver *Handler) splitBySeparatorAndTrimString(command string, separator string) []string {
 	commandStrings := strings.Split(command, separator)
 
 	for index, commandString := range commandStrings {
@@ -64,7 +66,7 @@ func (receiver *Handler) splitAndTrimString(command string, separator string) []
 }
 
 func (receiver *Handler) runForkExecCommand(command string) (string, error) {
-	commandSlice := receiver.splitCommandRow(command)
+	commandSlice := receiver.splitByRegExprCommandRow(command)
 
 	path, lookPathErr := exec.LookPath(commandSlice[0])
 
@@ -99,22 +101,20 @@ func (receiver *Handler) waitForkExecCommandAndSendResult(pid int) {
 	receiver.forkExecResultChannel <- result
 }
 
-func (receiver *Handler) splitCommandRow(commandRow string) []string {
+func (receiver *Handler) splitByRegExprCommandRow(commandRow string) []string {
 	regExpr := regexp.MustCompile(`('.*')|(".*")|(\S+)`)
 
 	return regExpr.FindAllString(commandRow, -1)
 }
 
-func (receiver *Handler) splitAndExecCommand(commandRow string) (string, error) {
-	commandSlice := receiver.splitCommandRow(commandRow)
-
-	path, lookPathErr := exec.LookPath(commandSlice[0])
+func (receiver *Handler) executeCommand(commandStrings []string) (string, error) {
+	path, lookPathErr := exec.LookPath(commandStrings[0])
 
 	if lookPathErr != nil {
 		return "", lookPathErr
 	}
 
-	cmd := exec.Command(path, commandSlice[1:]...)
+	cmd := exec.Command(path, commandStrings[1:]...)
 	result, err := cmd.CombinedOutput()
 
 	if err != nil {
