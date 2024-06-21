@@ -27,7 +27,7 @@ func (receiver *Handler) Execute(commandRow string) (string, error) {
 			return "", errors.New("invalid fork/exec-commandRow")
 		}
 
-		commandSlice := receiver.splitByRegExprCommandRow(commandStrings[0])
+		commandSlice := receiver.splitByRegExprCommandRowAndTrimEndDelimiters(commandStrings[0])
 
 		return receiver.runForkExecCommand(commandSlice)
 	} else if strings.Contains(commandRow, "|") {
@@ -39,7 +39,7 @@ func (receiver *Handler) Execute(commandRow string) (string, error) {
 
 		return "", nil
 	} else if _, isContain := strings.CutPrefix(commandRow, "cd"); isContain {
-		commandStrings := receiver.splitByRegExprCommandRow(commandRow)
+		commandStrings := receiver.splitByRegExprCommandRowAndTrimEndDelimiters(commandRow)
 
 		if len(commandStrings) != 2 {
 			return "", errors.New("invalid cd command")
@@ -52,7 +52,7 @@ func (receiver *Handler) Execute(commandRow string) (string, error) {
 		return "Ok", nil
 	}
 
-	commandStrings := receiver.splitByRegExprCommandRow(commandRow)
+	commandStrings := receiver.splitByRegExprCommandRowAndTrimEndDelimiters(commandRow)
 
 	return receiver.executeCommand(commandStrings)
 }
@@ -101,10 +101,15 @@ func (receiver *Handler) waitForkExecCommandAndSendResult(pid int) {
 	receiver.forkExecResultChannel <- result
 }
 
-func (receiver *Handler) splitByRegExprCommandRow(commandRow string) []string {
+func (receiver *Handler) splitByRegExprCommandRowAndTrimEndDelimiters(commandRow string) []string {
 	regExpr := regexp.MustCompile(`('.*')|(".*")|(\S+)`)
+	output := regExpr.FindAllString(commandRow, -1)
 
-	return regExpr.FindAllString(commandRow, -1)
+	for index, commandLine := range output {
+		output[index] = strings.Trim(commandLine, `"'`)
+	}
+
+	return output
 }
 
 func (receiver *Handler) executeCommand(commandStrings []string) (string, error) {
