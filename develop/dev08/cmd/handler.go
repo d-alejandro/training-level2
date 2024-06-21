@@ -27,7 +27,9 @@ func (receiver *Handler) Execute(commandRow string) (string, error) {
 			return "", errors.New("invalid fork/exec-commandRow")
 		}
 
-		return receiver.runForkExecCommand(commandStrings[0])
+		commandSlice := receiver.splitByRegExprCommandRow(commandStrings[0])
+
+		return receiver.runForkExecCommand(commandSlice)
 	} else if strings.Contains(commandRow, "|") {
 		commandStrings := receiver.splitBySeparatorAndTrimString(commandRow, "|")
 
@@ -65,16 +67,14 @@ func (receiver *Handler) splitBySeparatorAndTrimString(command string, separator
 	return commandStrings
 }
 
-func (receiver *Handler) runForkExecCommand(command string) (string, error) {
-	commandSlice := receiver.splitByRegExprCommandRow(command)
-
-	path, lookPathErr := exec.LookPath(commandSlice[0])
+func (receiver *Handler) runForkExecCommand(commandStrings []string) (string, error) {
+	path, lookPathErr := exec.LookPath(commandStrings[0])
 
 	if lookPathErr != nil {
 		return "", lookPathErr
 	}
 
-	pid, forkExecErr := syscall.ForkExec(path, commandSlice, nil)
+	pid, forkExecErr := syscall.ForkExec(path, commandStrings, nil)
 
 	if forkExecErr != nil {
 		return "", forkExecErr
