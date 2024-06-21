@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"os"
@@ -37,7 +38,7 @@ func (receiver *Handler) Execute(commandRow string) (string, error) {
 			return "", errors.New("invalid pipes")
 		}
 
-		return "", nil
+		return receiver.executePipeCommand(commandStrings)
 	} else if _, isContain := strings.CutPrefix(commandRow, "cd"); isContain {
 		commandStrings := receiver.splitByRegExprCommandRowAndTrimEndDelimiters(commandRow)
 
@@ -113,13 +114,12 @@ func (receiver *Handler) splitByRegExprCommandRowAndTrimEndDelimiters(commandRow
 }
 
 func (receiver *Handler) executeCommand(commandStrings []string) (string, error) {
-	path, lookPathErr := exec.LookPath(commandStrings[0])
+	cmd, creationErr := receiver.createCommand(commandStrings)
 
-	if lookPathErr != nil {
-		return "", lookPathErr
+	if creationErr != nil {
+		return "", creationErr
 	}
 
-	cmd := exec.Command(path, commandStrings[1:]...)
 	result, err := cmd.CombinedOutput()
 
 	if err != nil {
@@ -129,6 +129,59 @@ func (receiver *Handler) executeCommand(commandStrings []string) (string, error)
 	return string(result), nil
 }
 
+func (receiver *Handler) createCommand(commandStrings []string) (*exec.Cmd, error) {
+	path, lookPathErr := exec.LookPath(commandStrings[0])
+
+	if lookPathErr != nil {
+		return nil, lookPathErr
+	}
+
+	return exec.Command(path, commandStrings[1:]...), nil
+}
+
 func (receiver *Handler) isContainValues(commandStrings []string) bool {
 	return commandStrings[0] == "" || commandStrings[len(commandStrings)-1] == ""
+}
+
+func (receiver *Handler) executePipeCommand(commandStrings []string) (string, error) {
+	var outputBuffer bytes.Buffer
+
+	commandStringsLength := len(commandStrings)
+	commandSlice := make([]*exec.Cmd, commandStringsLength)
+
+	for index, command := range commandStrings {
+		commandArgs := receiver.splitByRegExprCommandRowAndTrimEndDelimiters(command)
+		cmd, cmdError := receiver.createCommand(commandArgs)
+
+		if cmdError != nil {
+			return "", cmdError
+		}
+
+		commandSlice[index] = cmd
+
+		if index > 0 {
+			commandSlice[index].Stdin, _ = commandSlice[index-1].StdoutPipe()
+		}
+	}
+
+	commandSlice[commandStringsLength-1].Stdout = &outputBuffer
+	commandSlice[commandStringsLength-1].Stderr = &outputBuffer
+
+	for index := commandStringsLength - 1; index > 0; index-- {
+		if startError := commandSlice[index].Start(); startError != nil {
+			return "", startError
+		}
+	}
+
+	if runError := commandSlice[0].Run(); runError != nil {
+		return "", runError
+	}
+
+	for index := 1; index < commandStringsLength; index++ {
+		if waitError := commandSlice[index].Wait(); waitError != nil {
+			return "", waitError
+		}
+	}
+
+	return string(outputBuffer.Bytes()), nil
 }
