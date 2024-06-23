@@ -1,5 +1,12 @@
 package main
 
+import (
+	"d-alejandro/training-level2/develop/dev09/downloader"
+	"flag"
+	"fmt"
+	"os"
+)
+
 /*
 === Утилита wget ===
 
@@ -8,6 +15,33 @@ package main
 Программа должна проходить все тесты. Код должен проходить проверки go vet и golint.
 */
 
+/*
+./dev09 -l 2 https://www.site.com/
+*/
 func main() {
+	levelMaxFlag := flag.Int("l", 1, "maximum nesting depth of pages")
 
+	flag.Parse()
+
+	if *levelMaxFlag < 1 {
+		fmt.Println("flag value is less than one.")
+		os.Exit(1)
+	}
+
+	arguments := flag.Args()
+
+	if len(arguments) != 1 {
+		fmt.Println("url not found.")
+		os.Exit(1)
+	}
+
+	url := arguments[0]
+	webGetter := downloader.NewWebGetter(*levelMaxFlag)
+
+	if err := webGetter.Get(url); err != nil {
+		fmt.Printf("download failed.\n%s", err.Error())
+		os.Exit(1)
+	}
+
+	fmt.Println("download complete.")
 }
