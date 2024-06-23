@@ -2,7 +2,6 @@ package downloader
 
 import (
 	"bytes"
-	"fmt"
 	"golang.org/x/net/html"
 	"net/http"
 	"strings"
@@ -12,14 +11,17 @@ type WebGetter struct {
 	levelMaxFlag int
 	fileWriter   *FileWriter
 	rootUrl      string
-	host         string
 	currentLevel int
+	linkMap      map[string]struct{}
 }
 
 func NewWebGetter(levelMaxFlag int) *WebGetter {
+	linkMap := make(map[string]struct{})
+
 	return &WebGetter{
 		levelMaxFlag: levelMaxFlag,
 		fileWriter:   NewFileWriter(),
+		linkMap:      linkMap,
 	}
 }
 
@@ -30,8 +32,6 @@ func (receiver *WebGetter) Get(url string) error {
 	if errGet != nil {
 		return errGet
 	}
-
-	receiver.host = response.Request.URL.Host
 
 	node, errParse := html.Parse(response.Body)
 	if errParse != nil {
@@ -45,7 +45,8 @@ func (receiver *WebGetter) Get(url string) error {
 		return err
 	}
 
-	receiver.fileWriter.WriteContent(receiver.host, buffer.String())
+	host := response.Request.URL.Host
+	receiver.fileWriter.WriteContent(host, buffer.String())
 
 	if err := response.Body.Close(); err != nil {
 		return err
@@ -73,12 +74,15 @@ func (receiver *WebGetter) processNodes(node *html.Node) {
 func (receiver *WebGetter) processHtmlElementNode(node *html.Node) {
 	switch node.Data {
 	case "a":
-		for _, attribute := range node.Attr {
+		for key, attribute := range node.Attr {
 			if attribute.Key == "href" {
 				attribute.Val = receiver.addUrlSuffix(attribute.Val)
 
 				if strings.HasPrefix(attribute.Val, receiver.rootUrl) {
-					fmt.Println(attribute.Val)
+					attribute.Val = strings.TrimPrefix(attribute.Val, receiver.rootUrl) + "index.html"
+					node.Attr[key] = attribute
+
+					receiver.linkMap[attribute.Val] = struct{}{}
 				}
 				break
 			}
