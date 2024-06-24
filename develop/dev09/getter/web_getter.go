@@ -50,7 +50,7 @@ func (receiver *WebGetter) Execute(url string) error {
 			receiver.currentUrl = link
 			receiver.currentPath = path
 
-			if err := receiver.get(); err != nil {
+			if err := receiver.getResponseProcessAndSaveContent(); err != nil {
 				return err
 			}
 
@@ -61,7 +61,7 @@ func (receiver *WebGetter) Execute(url string) error {
 	return nil
 }
 
-func (receiver *WebGetter) get() error {
+func (receiver *WebGetter) getResponseProcessAndSaveContent() error {
 	response, errGet := http.Get(receiver.currentUrl)
 	if errGet != nil {
 		return errGet
