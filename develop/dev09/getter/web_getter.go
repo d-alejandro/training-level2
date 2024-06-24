@@ -8,6 +8,7 @@ import (
 )
 
 const TagA = "a"
+const TagIMG = "img"
 
 type WebGetter struct {
 	levelMaxFlag     int
@@ -20,17 +21,20 @@ type WebGetter struct {
 	rootPatch        string
 	linkMap          map[string]string
 	linkSavedMap     map[string]struct{}
+	imageMap         map[string]string
 }
 
 func NewWebGetter(levelMaxFlag int) *WebGetter {
 	linkMap := make(map[string]string)
 	linkSavedMap := make(map[string]struct{})
+	imageMap := make(map[string]string)
 
 	return &WebGetter{
 		levelMaxFlag: levelMaxFlag,
 		fileWriter:   NewFileWriter(),
 		linkMap:      linkMap,
 		linkSavedMap: linkSavedMap,
+		imageMap:     imageMap,
 	}
 }
 
@@ -58,6 +62,10 @@ func (receiver *WebGetter) Execute(url string) error {
 
 			receiver.linkSavedMap[receiver.currentUrl] = struct{}{}
 		}
+	}
+
+	for imageUrl, imagePath := range receiver.imageMap {
+		receiver.fileWriter.WriteImage(imageUrl, receiver.rootPatch+imagePath)
 	}
 
 	return nil
@@ -128,12 +136,32 @@ func (receiver *WebGetter) processHtmlElementNode(node *html.Node) {
 				break
 			}
 		}
+	case TagIMG:
+		for key, attribute := range node.Attr {
+			if attribute.Key == "src" {
+				value := receiver.replaceUrlToPath(attribute.Val)
+				receiver.imageMap[attribute.Val] = value
+
+				attribute.Val = receiver.convertPreviousLink(value)
+				node.Attr[key] = attribute
+
+				break
+			}
+		}
 	}
 }
 
 func (receiver *WebGetter) convertPreviousLink(link string) string {
 	if receiver.currentLevel > 0 {
-		return "../" + link
+		backLink := strings.Repeat("../", receiver.currentLevel)
+		return backLink + link
 	}
 	return link
+}
+
+func (receiver *WebGetter) replaceUrlToPath(url string) string {
+	if strings.HasPrefix(url, "https://") {
+		return strings.TrimPrefix(url, "https://")
+	}
+	return strings.TrimPrefix(url, "http://")
 }
