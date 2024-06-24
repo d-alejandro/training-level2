@@ -38,7 +38,7 @@ func (receiver *WebGetter) Execute(url string) error {
 	receiver.urlWithSuffix = receiver.addUrlSuffix(url)
 	receiver.linkMap[receiver.urlWithSuffix] = ""
 
-	for receiver.currentLevel = 0; receiver.currentLevel <= 2; receiver.currentLevel++ {
+	for receiver.currentLevel = 0; receiver.currentLevel < receiver.levelMaxFlag; receiver.currentLevel++ {
 		linkMap := receiver.linkMap
 		receiver.linkMap = make(map[string]string)
 
@@ -119,7 +119,7 @@ func (receiver *WebGetter) processHtmlElementNode(node *html.Node) {
 				attributeValue := receiver.addUrlSuffix(attribute.Val)
 				attributeValueTrimmed := strings.TrimPrefix(attributeValue, receiver.urlWithSuffix)
 
-				attribute.Val = attributeValueTrimmed + "index.html"
+				attribute.Val = receiver.convertPreviousLink(attributeValueTrimmed + "index.html")
 				node.Attr[key] = attribute
 
 				if _, isExist := receiver.linkSavedMap[attributeValue]; !isExist {
@@ -129,4 +129,11 @@ func (receiver *WebGetter) processHtmlElementNode(node *html.Node) {
 			}
 		}
 	}
+}
+
+func (receiver *WebGetter) convertPreviousLink(link string) string {
+	if receiver.currentLevel > 0 {
+		return "../" + link
+	}
+	return link
 }
