@@ -7,6 +7,8 @@ import (
 	"strings"
 )
 
+const TagA = "a"
+
 type WebGetter struct {
 	levelMaxFlag     int
 	fileWriter       *FileWriter
@@ -17,12 +19,12 @@ type WebGetter struct {
 	currentLevel     int
 	rootPatch        string
 	linkMap          map[string]string
-	linkSavedMap     map[string]string
+	linkSavedMap     map[string]struct{}
 }
 
 func NewWebGetter(levelMaxFlag int) *WebGetter {
 	linkMap := make(map[string]string)
-	linkSavedMap := make(map[string]string)
+	linkSavedMap := make(map[string]struct{})
 
 	return &WebGetter{
 		levelMaxFlag: levelMaxFlag,
@@ -54,7 +56,7 @@ func (receiver *WebGetter) Execute(url string) error {
 				return err
 			}
 
-			receiver.linkSavedMap[receiver.currentUrl] = receiver.currentPath
+			receiver.linkSavedMap[receiver.currentUrl] = struct{}{}
 		}
 	}
 
@@ -110,8 +112,6 @@ func (receiver *WebGetter) processNodes(node *html.Node) {
 }
 
 func (receiver *WebGetter) processHtmlElementNode(node *html.Node) {
-	const TagA = "a"
-
 	switch node.Data {
 	case TagA:
 		for key, attribute := range node.Attr {

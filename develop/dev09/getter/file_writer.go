@@ -19,7 +19,7 @@ func NewFileWriter() *FileWriter {
 }
 
 func (receiver *FileWriter) WriteContent(path, content string) {
-	directory := receiver.currentDirectory + path + "/"
+	directory := receiver.currentDirectory + path
 
 	errorMakeDir := os.MkdirAll(directory, os.ModePerm)
 	if errorMakeDir != nil {
