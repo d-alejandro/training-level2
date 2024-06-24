@@ -38,7 +38,7 @@ func main() {
 	url := arguments[0]
 	webGetter := downloader.NewWebGetter(*levelMaxFlag)
 
-	if err := webGetter.Get(url); err != nil {
+	if err := webGetter.Execute(url); err != nil {
 		fmt.Printf("download failed.\n%s", err.Error())
 		os.Exit(1)
 	}

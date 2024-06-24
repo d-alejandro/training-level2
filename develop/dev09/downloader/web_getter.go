@@ -10,13 +10,15 @@ import (
 type WebGetter struct {
 	levelMaxFlag int
 	fileWriter   *FileWriter
-	rootUrl      string
+	host         string
+	currentUrl   string
+	currentPath  string
 	currentLevel int
-	linkMap      map[string]struct{}
+	linkMap      map[string]string
 }
 
 func NewWebGetter(levelMaxFlag int) *WebGetter {
-	linkMap := make(map[string]struct{})
+	linkMap := make(map[string]string)
 
 	return &WebGetter{
 		levelMaxFlag: levelMaxFlag,
@@ -25,10 +27,32 @@ func NewWebGetter(levelMaxFlag int) *WebGetter {
 	}
 }
 
-func (receiver *WebGetter) Get(url string) error {
-	receiver.rootUrl = receiver.addUrlSuffix(url)
+func (receiver *WebGetter) Execute(url string) error {
+	receiver.currentUrl = receiver.addUrlSuffix(url)
 
-	response, errGet := http.Get(receiver.rootUrl)
+	if err := receiver.get(); err != nil {
+		return err
+	}
+
+	for receiver.currentLevel = 1; receiver.currentLevel <= receiver.levelMaxFlag; receiver.currentLevel++ {
+		linkMap := receiver.linkMap
+		receiver.linkMap = make(map[string]string)
+
+		for link, path := range linkMap {
+			receiver.currentUrl = link
+			receiver.currentPath = path
+
+			if err := receiver.get(); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func (receiver *WebGetter) get() error {
+	response, errGet := http.Get(receiver.currentUrl)
 	if errGet != nil {
 		return errGet
 	}
@@ -45,8 +69,13 @@ func (receiver *WebGetter) Get(url string) error {
 		return err
 	}
 
-	host := response.Request.URL.Host
-	receiver.fileWriter.WriteContent(host, buffer.String())
+	if receiver.currentLevel == 0 {
+		receiver.host = response.Request.URL.Host
+	}
+
+	path := receiver.host + "/" + receiver.currentPath
+
+	receiver.fileWriter.WriteContent(path, buffer.String())
 
 	if err := response.Body.Close(); err != nil {
 		return err
@@ -78,11 +107,16 @@ func (receiver *WebGetter) processHtmlElementNode(node *html.Node) {
 			if attribute.Key == "href" {
 				attribute.Val = receiver.addUrlSuffix(attribute.Val)
 
-				if strings.HasPrefix(attribute.Val, receiver.rootUrl) {
-					attribute.Val = strings.TrimPrefix(attribute.Val, receiver.rootUrl) + "index.html"
+				if strings.HasPrefix(attribute.Val, receiver.currentUrl) {
+					attributeValue := attribute.Val
+					attributeValueTrimmed := strings.TrimPrefix(attributeValue, receiver.currentUrl)
+
+					attribute.Val = attributeValueTrimmed + "index.html"
 					node.Attr[key] = attribute
 
-					receiver.linkMap[attribute.Val] = struct{}{}
+					if attributeValue != receiver.currentUrl {
+						receiver.linkMap[attributeValue] = attributeValueTrimmed
+					}
 				}
 				break
 			}
