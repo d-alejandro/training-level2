@@ -10,10 +10,12 @@ import (
 type WebGetter struct {
 	levelMaxFlag     int
 	fileWriter       *FileWriter
+	urlWithSuffix    string
 	urlWithoutSuffix string
 	currentUrl       string
 	currentPath      string
 	currentLevel     int
+	rootPatch        string
 	linkMap          map[string]string
 	linkSavedMap     map[string]string
 }
@@ -33,10 +35,10 @@ func NewWebGetter(levelMaxFlag int) *WebGetter {
 func (receiver *WebGetter) Execute(url string) error {
 	receiver.urlWithoutSuffix = strings.TrimSuffix(url, "/")
 
-	url = receiver.addUrlSuffix(url)
-	receiver.linkMap[url] = ""
+	receiver.urlWithSuffix = receiver.addUrlSuffix(url)
+	receiver.linkMap[receiver.urlWithSuffix] = ""
 
-	for receiver.currentLevel = 0; receiver.currentLevel <= 1; receiver.currentLevel++ {
+	for receiver.currentLevel = 0; receiver.currentLevel <= 2; receiver.currentLevel++ {
 		linkMap := receiver.linkMap
 		receiver.linkMap = make(map[string]string)
 
@@ -66,7 +68,7 @@ func (receiver *WebGetter) get() error {
 	}
 
 	if receiver.currentLevel == 0 {
-		receiver.currentPath = receiver.addUrlSuffix(response.Request.URL.Host)
+		receiver.rootPatch = receiver.addUrlSuffix(response.Request.URL.Host)
 	}
 
 	node, errParse := html.Parse(response.Body)
@@ -81,7 +83,8 @@ func (receiver *WebGetter) get() error {
 		return err
 	}
 
-	receiver.fileWriter.WriteContent(receiver.currentPath, buffer.String())
+	patch := receiver.rootPatch + receiver.currentPath
+	receiver.fileWriter.WriteContent(patch, buffer.String())
 
 	if err := response.Body.Close(); err != nil {
 		return err
@@ -114,13 +117,13 @@ func (receiver *WebGetter) processHtmlElementNode(node *html.Node) {
 		for key, attribute := range node.Attr {
 			if attribute.Key == "href" && strings.HasPrefix(attribute.Val, receiver.urlWithoutSuffix) {
 				attributeValue := receiver.addUrlSuffix(attribute.Val)
-				attributeValueTrimmed := strings.TrimPrefix(attributeValue, receiver.currentUrl)
+				attributeValueTrimmed := strings.TrimPrefix(attributeValue, receiver.urlWithSuffix)
 
 				attribute.Val = attributeValueTrimmed + "index.html"
 				node.Attr[key] = attribute
 
 				if _, isExist := receiver.linkSavedMap[attributeValue]; !isExist {
-					receiver.linkMap[attributeValue] = receiver.currentPath + attributeValueTrimmed
+					receiver.linkMap[attributeValue] = attributeValueTrimmed
 				}
 				break
 			}
