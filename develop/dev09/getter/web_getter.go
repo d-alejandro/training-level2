@@ -1,4 +1,4 @@
-package downloader
+package getter
 
 import (
 	"bytes"
@@ -8,43 +8,51 @@ import (
 )
 
 type WebGetter struct {
-	levelMaxFlag int
-	fileWriter   *FileWriter
-	host         string
-	currentUrl   string
-	currentPath  string
-	currentLevel int
-	linkMap      map[string]string
+	levelMaxFlag     int
+	fileWriter       *FileWriter
+	urlWithoutSuffix string
+	currentUrl       string
+	currentPath      string
+	currentLevel     int
+	linkMap          map[string]string
+	linkSavedMap     map[string]string
 }
 
 func NewWebGetter(levelMaxFlag int) *WebGetter {
 	linkMap := make(map[string]string)
+	linkSavedMap := make(map[string]string)
 
 	return &WebGetter{
 		levelMaxFlag: levelMaxFlag,
 		fileWriter:   NewFileWriter(),
 		linkMap:      linkMap,
+		linkSavedMap: linkSavedMap,
 	}
 }
 
 func (receiver *WebGetter) Execute(url string) error {
-	receiver.currentUrl = receiver.addUrlSuffix(url)
+	receiver.urlWithoutSuffix = strings.TrimSuffix(url, "/")
 
-	if err := receiver.get(); err != nil {
-		return err
-	}
+	url = receiver.addUrlSuffix(url)
+	receiver.linkMap[url] = ""
 
-	for receiver.currentLevel = 1; receiver.currentLevel <= receiver.levelMaxFlag; receiver.currentLevel++ {
+	for receiver.currentLevel = 0; receiver.currentLevel <= 1; receiver.currentLevel++ {
 		linkMap := receiver.linkMap
 		receiver.linkMap = make(map[string]string)
 
 		for link, path := range linkMap {
+			if _, isExist := receiver.linkSavedMap[link]; isExist {
+				continue
+			}
+
 			receiver.currentUrl = link
 			receiver.currentPath = path
 
 			if err := receiver.get(); err != nil {
 				return err
 			}
+
+			receiver.linkSavedMap[receiver.currentUrl] = receiver.currentPath
 		}
 	}
 
@@ -55,6 +63,10 @@ func (receiver *WebGetter) get() error {
 	response, errGet := http.Get(receiver.currentUrl)
 	if errGet != nil {
 		return errGet
+	}
+
+	if receiver.currentLevel == 0 {
+		receiver.currentPath = receiver.addUrlSuffix(response.Request.URL.Host)
 	}
 
 	node, errParse := html.Parse(response.Body)
@@ -69,13 +81,7 @@ func (receiver *WebGetter) get() error {
 		return err
 	}
 
-	if receiver.currentLevel == 0 {
-		receiver.host = response.Request.URL.Host
-	}
-
-	path := receiver.host + "/" + receiver.currentPath
-
-	receiver.fileWriter.WriteContent(path, buffer.String())
+	receiver.fileWriter.WriteContent(receiver.currentPath, buffer.String())
 
 	if err := response.Body.Close(); err != nil {
 		return err
@@ -101,22 +107,20 @@ func (receiver *WebGetter) processNodes(node *html.Node) {
 }
 
 func (receiver *WebGetter) processHtmlElementNode(node *html.Node) {
+	const TagA = "a"
+
 	switch node.Data {
-	case "a":
+	case TagA:
 		for key, attribute := range node.Attr {
-			if attribute.Key == "href" {
-				attribute.Val = receiver.addUrlSuffix(attribute.Val)
+			if attribute.Key == "href" && strings.HasPrefix(attribute.Val, receiver.urlWithoutSuffix) {
+				attributeValue := receiver.addUrlSuffix(attribute.Val)
+				attributeValueTrimmed := strings.TrimPrefix(attributeValue, receiver.currentUrl)
 
-				if strings.HasPrefix(attribute.Val, receiver.currentUrl) {
-					attributeValue := attribute.Val
-					attributeValueTrimmed := strings.TrimPrefix(attributeValue, receiver.currentUrl)
+				attribute.Val = attributeValueTrimmed + "index.html"
+				node.Attr[key] = attribute
 
-					attribute.Val = attributeValueTrimmed + "index.html"
-					node.Attr[key] = attribute
-
-					if attributeValue != receiver.currentUrl {
-						receiver.linkMap[attributeValue] = attributeValueTrimmed
-					}
+				if _, isExist := receiver.linkSavedMap[attributeValue]; !isExist {
+					receiver.linkMap[attributeValue] = receiver.currentPath + attributeValueTrimmed
 				}
 				break
 			}

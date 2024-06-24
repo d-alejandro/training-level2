@@ -1,7 +1,7 @@
 package main
 
 import (
-	"d-alejandro/training-level2/develop/dev09/downloader"
+	"d-alejandro/training-level2/develop/dev09/getter"
 	"flag"
 	"fmt"
 	"os"
@@ -16,7 +16,7 @@ import (
 */
 
 /*
-./dev09 -l 2 https://www.site.com/
+./dev09 -l 2 https://www.acdc.com/
 */
 func main() {
 	levelMaxFlag := flag.Int("l", 1, "maximum nesting depth of pages")
@@ -36,7 +36,7 @@ func main() {
 	}
 
 	url := arguments[0]
-	webGetter := downloader.NewWebGetter(*levelMaxFlag)
+	webGetter := getter.NewWebGetter(*levelMaxFlag)
 
 	if err := webGetter.Execute(url); err != nil {
 		fmt.Printf("download failed.\n%s", err.Error())
