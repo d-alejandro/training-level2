@@ -58,9 +58,13 @@ func (receiver *WebGetter) Execute(url string) error {
 			receiver.currentUrl = link
 			receiver.currentPath = path
 
-			if err := receiver.getResponseProcessAndSaveContent(); err != nil {
+			buffer, err := receiver.getResponseAndProcessContent()
+			if err != nil {
 				return err
 			}
+
+			patch := receiver.rootPatch + receiver.currentPath
+			receiver.fileWriter.WriteContent(patch, buffer.String())
 
 			receiver.linkSavedMap[receiver.currentUrl] = struct{}{}
 		}
@@ -73,10 +77,10 @@ func (receiver *WebGetter) Execute(url string) error {
 	return nil
 }
 
-func (receiver *WebGetter) getResponseProcessAndSaveContent() error {
+func (receiver *WebGetter) getResponseAndProcessContent() (*bytes.Buffer, error) {
 	response, errGet := http.Get(receiver.currentUrl)
 	if errGet != nil {
-		return errGet
+		return nil, errGet
 	}
 
 	if receiver.currentLevel == 0 {
@@ -85,24 +89,21 @@ func (receiver *WebGetter) getResponseProcessAndSaveContent() error {
 
 	node, errParse := html.Parse(response.Body)
 	if errParse != nil {
-		return errParse
+		return nil, errParse
 	}
 
 	receiver.processNodes(node)
 
 	buffer := &bytes.Buffer{}
 	if err := html.Render(buffer, node); err != nil {
-		return err
+		return nil, err
 	}
-
-	patch := receiver.rootPatch + receiver.currentPath
-	receiver.fileWriter.WriteContent(patch, buffer.String())
 
 	if err := response.Body.Close(); err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return buffer, nil
 }
 
 func (receiver *WebGetter) addUrlSuffix(url string) string {
