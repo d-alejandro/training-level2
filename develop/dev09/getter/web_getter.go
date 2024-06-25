@@ -10,6 +10,7 @@ import (
 const TagA = "a"
 const TagIMG = "img"
 const TagSCRIPT = "script"
+const TagLINK = "link"
 
 type WebGetter struct {
 	levelMaxFlag     int
@@ -152,18 +153,36 @@ func (receiver *WebGetter) processHtmlElementNode(node *html.Node) {
 	case TagSCRIPT:
 		for key, attribute := range node.Attr {
 			if attribute.Key == "src" {
-				value := receiver.replaceUrlToPath(attribute.Val)
-				value = receiver.removeRootPatch(value)
-				value = strings.TrimPrefix(value, "/")
-
-				modifiedUrl := receiver.modifyUrl(attribute.Val)
-				receiver.resourceMap[modifiedUrl] = value
-
-				attribute.Val = receiver.convertPreviousLink(value)
-				node.Attr[key] = attribute
-
+				receiver.processAttributeValue(key, attribute, node)
 				break
 			}
+		}
+	case TagLINK:
+		var (
+			key           int
+			htmlAttribute html.Attribute
+			relKeyExist   bool
+			hrefKeyExist  bool
+		)
+
+		for index, attribute := range node.Attr {
+			if attribute.Key == "rel" {
+				if attribute.Val == "stylesheet" ||
+					attribute.Val == "icon" ||
+					attribute.Val == "apple-touch-icon" ||
+					attribute.Val == "EditURI" {
+					relKeyExist = true
+					continue
+				}
+				break
+			} else if attribute.Key == "href" {
+				key, htmlAttribute = index, attribute
+				hrefKeyExist = true
+			}
+		}
+
+		if relKeyExist && hrefKeyExist {
+			receiver.processAttributeValue(key, htmlAttribute, node)
 		}
 	}
 }
@@ -181,6 +200,18 @@ func (receiver *WebGetter) replaceUrlToPath(url string) string {
 		return strings.TrimPrefix(url, "https://")
 	}
 	return strings.TrimPrefix(url, "http://")
+}
+
+func (receiver *WebGetter) processAttributeValue(key int, attribute html.Attribute, node *html.Node) {
+	value := receiver.replaceUrlToPath(attribute.Val)
+	value = receiver.removeRootPatch(value)
+	value = strings.TrimPrefix(value, "/")
+
+	modifiedUrl := receiver.modifyUrl(attribute.Val)
+	receiver.resourceMap[modifiedUrl] = value
+
+	attribute.Val = receiver.convertPreviousLink(value)
+	node.Attr[key] = attribute
 }
 
 func (receiver *WebGetter) removeRootPatch(url string) string {
