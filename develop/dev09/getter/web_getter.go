@@ -9,6 +9,7 @@ import (
 
 const TagA = "a"
 const TagIMG = "img"
+const TagSCRIPT = "script"
 
 type WebGetter struct {
 	levelMaxFlag     int
@@ -21,7 +22,7 @@ type WebGetter struct {
 	rootPatch        string
 	linkMap          map[string]string
 	linkSavedMap     map[string]struct{}
-	imageMap         map[string]string
+	resourceMap      map[string]string
 }
 
 func NewWebGetter(levelMaxFlag int) *WebGetter {
@@ -34,7 +35,7 @@ func NewWebGetter(levelMaxFlag int) *WebGetter {
 		fileWriter:   NewFileWriter(),
 		linkMap:      linkMap,
 		linkSavedMap: linkSavedMap,
-		imageMap:     imageMap,
+		resourceMap:  imageMap,
 	}
 }
 
@@ -64,8 +65,8 @@ func (receiver *WebGetter) Execute(url string) error {
 		}
 	}
 
-	for imageUrl, imagePath := range receiver.imageMap {
-		receiver.fileWriter.WriteImage(imageUrl, receiver.rootPatch+imagePath)
+	for resourceUrl, resourcePath := range receiver.resourceMap {
+		receiver.fileWriter.WriteResourceFile(resourceUrl, receiver.rootPatch+resourcePath)
 	}
 
 	return nil
@@ -140,7 +141,23 @@ func (receiver *WebGetter) processHtmlElementNode(node *html.Node) {
 		for key, attribute := range node.Attr {
 			if attribute.Key == "src" {
 				value := receiver.replaceUrlToPath(attribute.Val)
-				receiver.imageMap[attribute.Val] = value
+				receiver.resourceMap[attribute.Val] = value
+
+				attribute.Val = receiver.convertPreviousLink(value)
+				node.Attr[key] = attribute
+
+				break
+			}
+		}
+	case TagSCRIPT:
+		for key, attribute := range node.Attr {
+			if attribute.Key == "src" {
+				value := receiver.replaceUrlToPath(attribute.Val)
+				value = receiver.removeRootPatch(value)
+				value = strings.TrimPrefix(value, "/")
+
+				modifiedUrl := receiver.modifyUrl(attribute.Val)
+				receiver.resourceMap[modifiedUrl] = value
 
 				attribute.Val = receiver.convertPreviousLink(value)
 				node.Attr[key] = attribute
@@ -164,4 +181,17 @@ func (receiver *WebGetter) replaceUrlToPath(url string) string {
 		return strings.TrimPrefix(url, "https://")
 	}
 	return strings.TrimPrefix(url, "http://")
+}
+
+func (receiver *WebGetter) removeRootPatch(url string) string {
+	return strings.TrimPrefix(url, receiver.rootPatch)
+}
+
+func (receiver *WebGetter) modifyUrl(url string) string {
+	if strings.HasPrefix(url, "http") {
+		return url
+	}
+
+	url = strings.TrimPrefix(url, "/")
+	return receiver.urlWithSuffix + url
 }

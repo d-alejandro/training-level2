@@ -46,8 +46,8 @@ func (receiver *FileWriter) WriteContent(path, content string) {
 	receiver.closeFile(file)
 }
 
-func (receiver *FileWriter) WriteImage(url, path string) {
-	directory, imageFile := filepath.Split(path)
+func (receiver *FileWriter) WriteResourceFile(url, path string) {
+	directory, resourceFile := filepath.Split(path)
 	directory = receiver.currentDirectory + directory
 
 	errorMakeDir := os.MkdirAll(directory, os.ModePerm)
@@ -56,7 +56,7 @@ func (receiver *FileWriter) WriteImage(url, path string) {
 		os.Exit(1)
 	}
 
-	file, errorCreate := os.Create(directory + imageFile)
+	file, errorCreate := os.Create(directory + resourceFile)
 	if errorCreate != nil {
 		fmt.Println(errorCreate.Error())
 		os.Exit(1)
