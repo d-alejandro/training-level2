@@ -47,7 +47,15 @@ func (receiver *FileWriter) WriteContent(path, content string) {
 }
 
 func (receiver *FileWriter) WriteResourceFile(url, path string) {
+	if url == "" || path == "" {
+		return
+	}
+
 	directory, resourceFile := filepath.Split(path)
+	if resourceFile == "" {
+		return
+	}
+
 	directory = receiver.currentDirectory + directory
 
 	errorMakeDir := os.MkdirAll(directory, os.ModePerm)
