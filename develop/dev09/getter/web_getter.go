@@ -164,6 +164,7 @@ func (receiver *WebGetter) processHtmlElementNode(node *html.Node) {
 			htmlAttribute html.Attribute
 			relKeyExist   bool
 			hrefKeyExist  bool
+			isCss         bool
 		)
 
 		for index, attribute := range node.Attr {
@@ -173,6 +174,7 @@ func (receiver *WebGetter) processHtmlElementNode(node *html.Node) {
 					attribute.Val == "apple-touch-icon" ||
 					attribute.Val == "EditURI" {
 					relKeyExist = true
+					isCss = attribute.Val == "stylesheet"
 					continue
 				}
 				break
@@ -183,6 +185,9 @@ func (receiver *WebGetter) processHtmlElementNode(node *html.Node) {
 		}
 
 		if relKeyExist && hrefKeyExist {
+			if isCss && !strings.HasSuffix(htmlAttribute.Val, ".css") {
+				htmlAttribute.Val = htmlAttribute.Val + ".css"
+			}
 			receiver.processAttributeValue(key, htmlAttribute, node)
 		}
 	}
@@ -206,12 +211,14 @@ func (receiver *WebGetter) replaceUrlToPath(url string) string {
 func (receiver *WebGetter) processAttributeValue(key int, attribute html.Attribute, node *html.Node) {
 	value := receiver.replaceUrlToPath(attribute.Val)
 	value = receiver.removeRootPatch(value)
-	value = strings.TrimPrefix(value, "/")
+	value = strings.TrimLeft(value, "/")
 
 	modifiedUrl := receiver.modifyUrl(attribute.Val)
 	receiver.resourceMap[modifiedUrl] = value
 
 	attribute.Val = receiver.convertPreviousLink(value)
+	attribute.Val = strings.ReplaceAll(attribute.Val, "%", "%25")
+	attribute.Val = strings.ReplaceAll(attribute.Val, "?", "%3F")
 	node.Attr[key] = attribute
 }
 
@@ -224,6 +231,6 @@ func (receiver *WebGetter) modifyUrl(url string) string {
 		return url
 	}
 
-	url = strings.TrimPrefix(url, "/")
+	url = strings.TrimLeft(url, "/")
 	return receiver.urlWithSuffix + url
 }
