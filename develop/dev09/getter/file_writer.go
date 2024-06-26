@@ -117,7 +117,7 @@ func (receiver *FileWriter) WriteCSSResources() {
 }
 
 func (receiver *FileWriter) processCSSFile(body, url string) {
-	regExpr := regexp.MustCompile(`url\(["'](....[^:].+?)['"]\)`)
+	regExpr := regexp.MustCompile(`url\(["']([^:]+?)['"]\)`)
 
 	array := regExpr.FindAllStringSubmatch(body, -1)
 	if array == nil {
