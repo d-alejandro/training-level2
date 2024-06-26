@@ -136,18 +136,33 @@ func (receiver *WebGetter) processHtmlElementNode(node *html.Node) {
 	switch node.Data {
 	case TagA:
 		for key, attribute := range node.Attr {
-			if attribute.Key == "href" && strings.HasPrefix(attribute.Val, receiver.urlWithoutSuffix) {
-				attributeValue := receiver.helper.AddUrlSuffix(attribute.Val)
-				attributeValueTrimmed := strings.TrimPrefix(attributeValue, receiver.urlWithSuffix)
+			if attribute.Key == "href" {
+				if strings.HasPrefix(attribute.Val, receiver.urlWithoutSuffix) {
+					attributeValue := receiver.helper.AddUrlSuffix(attribute.Val)
+					attributeValueTrimmed := strings.TrimPrefix(attributeValue, receiver.urlWithSuffix)
 
-				attribute.Val = receiver.helper.ConvertPreviousLink(
-					attributeValueTrimmed+"index.html",
-					receiver.currentLevel,
-				)
-				node.Attr[key] = attribute
+					attribute.Val = receiver.helper.ConvertPreviousLink(
+						attributeValueTrimmed+"index.html",
+						receiver.currentLevel,
+					)
+					node.Attr[key] = attribute
 
-				if _, isExist := receiver.linkSavedMap[attributeValue]; !isExist {
-					receiver.linkMap[attributeValue] = receiver.rootPath + attributeValueTrimmed
+					if _, isExist := receiver.linkSavedMap[attributeValue]; !isExist {
+						receiver.linkMap[attributeValue] = receiver.rootPath + attributeValueTrimmed
+					}
+				} else if strings.HasPrefix(attribute.Val, ".") {
+					attributeValue := receiver.helper.AddUrlSuffix(attribute.Val)
+					attributeValue = strings.TrimLeft(attributeValue, "./")
+
+					attribute.Val = receiver.helper.ConvertPreviousLink(
+						attributeValue+"index.html",
+						receiver.currentLevel,
+					)
+					node.Attr[key] = attribute
+
+					if _, isExist := receiver.linkSavedMap[attributeValue]; !isExist {
+						receiver.linkMap[receiver.urlWithSuffix+attributeValue] = receiver.rootPath + attributeValue
+					}
 				}
 				break
 			}
