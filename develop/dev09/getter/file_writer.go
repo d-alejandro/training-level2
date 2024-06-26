@@ -14,6 +14,7 @@ import (
 type FileWriter struct {
 	currentDirectory string
 	helper           *Helper
+	resourceMap      map[string]string
 }
 
 func NewFileWriter() *FileWriter {
@@ -25,6 +26,7 @@ func NewFileWriter() *FileWriter {
 	return &FileWriter{
 		currentDirectory: currentDirectory + "/",
 		helper:           NewHelper(),
+		resourceMap:      make(map[string]string),
 	}
 }
 
@@ -108,6 +110,12 @@ func (receiver *FileWriter) WriteResourceFile(url, path string) {
 	}
 }
 
+func (receiver *FileWriter) WriteCSSResources() {
+	for url, path := range receiver.resourceMap {
+		receiver.WriteResourceFile(url, path)
+	}
+}
+
 func (receiver *FileWriter) processCSSFile(body, url string) {
 	regExpr := regexp.MustCompile(`url\(["'](....[^:].+?)['"]\)`)
 
@@ -131,7 +139,7 @@ func (receiver *FileWriter) processCSSFile(body, url string) {
 
 		resourceUrl := directory + cssUrl
 		resourcePath := filepath.Clean(receiver.helper.ReplaceUrlToPath(resourceUrl))
-		receiver.WriteResourceFile(resourceUrl, resourcePath)
+		receiver.resourceMap[resourceUrl] = resourcePath
 	}
 }
 

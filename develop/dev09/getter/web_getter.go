@@ -85,6 +85,11 @@ func (receiver *WebGetter) Execute(url string) error {
 	}
 
 	fmt.Println("loading of web resources completed")
+	fmt.Println("start loading CSS web resources")
+
+	receiver.fileWriter.WriteCSSResources()
+
+	fmt.Println("loading of CSS web resources completed")
 
 	return nil
 }
