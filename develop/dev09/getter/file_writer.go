@@ -12,8 +12,7 @@ import (
 )
 
 type FileWriter struct {
-	currentDirectory  string
-	resourceDirectory string
+	currentDirectory string
 }
 
 func NewFileWriter() *FileWriter {
@@ -22,9 +21,7 @@ func NewFileWriter() *FileWriter {
 		fmt.Println("Error:", directoryError.Error())
 		os.Exit(1)
 	}
-	return &FileWriter{
-		currentDirectory: currentDirectory + "/",
-	}
+	return &FileWriter{currentDirectory + "/"}
 }
 
 func (receiver *FileWriter) WriteContent(path, content string) {
@@ -61,8 +58,6 @@ func (receiver *FileWriter) WriteResourceFile(url, path string) {
 	if resourceFile == "" {
 		return
 	}
-
-	receiver.resourceDirectory = directory
 
 	directory = receiver.currentDirectory + directory
 
@@ -131,9 +126,16 @@ func (receiver *FileWriter) processCSSFile(body, url string) {
 		cssUrl = strings.TrimPrefix(cssUrl, "/")
 
 		resourceUrl := directory + cssUrl
-		resourcePath := filepath.Join(receiver.resourceDirectory, cssUrl)
+		resourcePath := filepath.Clean(receiver.replaceUrlToPath(resourceUrl))
 		receiver.WriteResourceFile(resourceUrl, resourcePath)
 	}
+}
+
+func (receiver *FileWriter) replaceUrlToPath(url string) string {
+	if strings.HasPrefix(url, "https://") {
+		return strings.TrimPrefix(url, "https://")
+	}
+	return strings.TrimPrefix(url, "http://")
 }
 
 func (receiver *FileWriter) closeFile(file *os.File) {
