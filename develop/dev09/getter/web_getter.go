@@ -160,11 +160,11 @@ func (receiver *WebGetter) processHtmlElementNode(node *html.Node) {
 		}
 	case TagLINK:
 		var (
-			key           int
-			htmlAttribute html.Attribute
-			relKeyExist   bool
-			hrefKeyExist  bool
-			isCss         bool
+			attributeIndex int
+			htmlAttribute  html.Attribute
+			relKeyExist    bool
+			hrefKeyExist   bool
+			isCss          bool
 		)
 
 		for index, attribute := range node.Attr {
@@ -179,7 +179,7 @@ func (receiver *WebGetter) processHtmlElementNode(node *html.Node) {
 				}
 				break
 			} else if attribute.Key == "href" {
-				key, htmlAttribute = index, attribute
+				attributeIndex, htmlAttribute = index, attribute
 				hrefKeyExist = true
 			}
 		}
@@ -188,7 +188,7 @@ func (receiver *WebGetter) processHtmlElementNode(node *html.Node) {
 			if isCss && !strings.HasSuffix(htmlAttribute.Val, ".css") {
 				htmlAttribute.Val = htmlAttribute.Val + ".css"
 			}
-			receiver.processAttributeValue(key, htmlAttribute, node)
+			receiver.processAttributeValue(attributeIndex, htmlAttribute, node)
 		}
 	}
 }
@@ -208,7 +208,7 @@ func (receiver *WebGetter) replaceUrlToPath(url string) string {
 	return strings.TrimPrefix(url, "http://")
 }
 
-func (receiver *WebGetter) processAttributeValue(key int, attribute html.Attribute, node *html.Node) {
+func (receiver *WebGetter) processAttributeValue(attributeIndex int, attribute html.Attribute, node *html.Node) {
 	value := receiver.replaceUrlToPath(attribute.Val)
 	value = receiver.removeRootPatch(value)
 	value = strings.TrimLeft(value, "/")
@@ -219,7 +219,7 @@ func (receiver *WebGetter) processAttributeValue(key int, attribute html.Attribu
 	attribute.Val = receiver.convertPreviousLink(value)
 	attribute.Val = strings.ReplaceAll(attribute.Val, "%", "%25")
 	attribute.Val = strings.ReplaceAll(attribute.Val, "?", "%3F")
-	node.Attr[key] = attribute
+	node.Attr[attributeIndex] = attribute
 }
 
 func (receiver *WebGetter) removeRootPatch(url string) string {
