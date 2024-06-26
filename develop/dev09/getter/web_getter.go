@@ -2,6 +2,7 @@ package getter
 
 import (
 	"bytes"
+	"fmt"
 	"golang.org/x/net/html"
 	"net/http"
 	"strings"
@@ -18,9 +19,8 @@ type WebGetter struct {
 	urlWithSuffix    string
 	urlWithoutSuffix string
 	currentUrl       string
-	currentPath      string
 	currentLevel     int
-	rootPatch        string
+	rootPath         string
 	linkMap          map[string]string
 	linkSavedMap     map[string]struct{}
 	resourceMap      map[string]string
@@ -42,11 +42,13 @@ func NewWebGetter(levelMaxFlag int) *WebGetter {
 
 func (receiver *WebGetter) Execute(url string) error {
 	receiver.urlWithoutSuffix = strings.TrimSuffix(url, "/")
-
 	receiver.urlWithSuffix = receiver.addUrlSuffix(url)
+
 	receiver.linkMap[receiver.urlWithSuffix] = ""
 
 	for receiver.currentLevel = 0; receiver.currentLevel < receiver.levelMaxFlag; receiver.currentLevel++ {
+		fmt.Printf("level %d: start saving web content\n", receiver.currentLevel+1)
+
 		linkMap := receiver.linkMap
 		receiver.linkMap = make(map[string]string)
 
@@ -56,23 +58,31 @@ func (receiver *WebGetter) Execute(url string) error {
 			}
 
 			receiver.currentUrl = link
-			receiver.currentPath = path
 
 			buffer, err := receiver.getResponseAndProcessContent()
 			if err != nil {
 				return err
 			}
 
-			patch := receiver.rootPatch + receiver.currentPath
-			receiver.fileWriter.WriteContent(patch, buffer.String())
+			if receiver.currentLevel == 0 {
+				path = receiver.rootPath
+			}
+
+			receiver.fileWriter.WriteContent(path, buffer.String())
 
 			receiver.linkSavedMap[receiver.currentUrl] = struct{}{}
 		}
+
+		fmt.Printf("level %d: saving web content completed\n", receiver.currentLevel+1)
 	}
 
+	fmt.Println("start loading web resources")
+
 	for resourceUrl, resourcePath := range receiver.resourceMap {
-		receiver.fileWriter.WriteResourceFile(resourceUrl, receiver.rootPatch+resourcePath)
+		receiver.fileWriter.WriteResourceFile(resourceUrl, resourcePath)
 	}
+
+	fmt.Println("loading of web resources completed")
 
 	return nil
 }
@@ -84,7 +94,7 @@ func (receiver *WebGetter) getResponseAndProcessContent() (*bytes.Buffer, error)
 	}
 
 	if receiver.currentLevel == 0 {
-		receiver.rootPatch = receiver.addUrlSuffix(response.Request.URL.Host)
+		receiver.rootPath = receiver.addUrlSuffix(response.Request.URL.Host)
 	}
 
 	node, errParse := html.Parse(response.Body)
@@ -134,7 +144,7 @@ func (receiver *WebGetter) processHtmlElementNode(node *html.Node) {
 				node.Attr[key] = attribute
 
 				if _, isExist := receiver.linkSavedMap[attributeValue]; !isExist {
-					receiver.linkMap[attributeValue] = attributeValueTrimmed
+					receiver.linkMap[attributeValue] = receiver.rootPath + attributeValueTrimmed
 				}
 				break
 			}
@@ -143,7 +153,7 @@ func (receiver *WebGetter) processHtmlElementNode(node *html.Node) {
 		for key, attribute := range node.Attr {
 			if attribute.Key == "src" {
 				value := receiver.replaceUrlToPath(attribute.Val)
-				receiver.resourceMap[attribute.Val] = value
+				receiver.resourceMap[attribute.Val] = receiver.rootPath + value
 
 				attribute.Val = receiver.convertPreviousLink(value)
 				node.Attr[key] = attribute
@@ -210,11 +220,11 @@ func (receiver *WebGetter) replaceUrlToPath(url string) string {
 
 func (receiver *WebGetter) processAttributeValue(attributeIndex int, attribute html.Attribute, node *html.Node) {
 	value := receiver.replaceUrlToPath(attribute.Val)
-	value = receiver.removeRootPatch(value)
+	value = receiver.removeRootPath(value)
 	value = strings.TrimLeft(value, "/")
 
 	modifiedUrl := receiver.modifyUrl(attribute.Val)
-	receiver.resourceMap[modifiedUrl] = value
+	receiver.resourceMap[modifiedUrl] = receiver.rootPath + value
 
 	attribute.Val = receiver.convertPreviousLink(value)
 	attribute.Val = strings.ReplaceAll(attribute.Val, "%", "%25")
@@ -222,8 +232,8 @@ func (receiver *WebGetter) processAttributeValue(attributeIndex int, attribute h
 	node.Attr[attributeIndex] = attribute
 }
 
-func (receiver *WebGetter) removeRootPatch(url string) string {
-	return strings.TrimPrefix(url, receiver.rootPatch)
+func (receiver *WebGetter) removeRootPath(url string) string {
+	return strings.TrimPrefix(url, receiver.rootPath)
 }
 
 func (receiver *WebGetter) modifyUrl(url string) string {
