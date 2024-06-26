@@ -8,18 +8,36 @@ import (
 	"strings"
 )
 
+/*
+TagA tag <a>
+*/
 const TagA = "a"
+
+/*
+TagIMG tag <img>
+*/
 const TagIMG = "img"
+
+/*
+TagSCRIPT tag <script>
+*/
 const TagSCRIPT = "script"
+
+/*
+TagLINK tag <link>
+*/
 const TagLINK = "link"
 
+/*
+WebGetter structure
+*/
 type WebGetter struct {
 	levelMaxFlag     int
 	fileWriter       *FileWriter
 	helper           *Helper
 	urlWithSuffix    string
 	urlWithoutSuffix string
-	currentUrl       string
+	currentURL       string
 	currentLevel     int
 	rootPath         string
 	linkMap          map[string]string
@@ -27,6 +45,9 @@ type WebGetter struct {
 	resourceMap      map[string]string
 }
 
+/*
+NewWebGetter constructor
+*/
 func NewWebGetter(levelMaxFlag int) *WebGetter {
 	linkMap := make(map[string]string)
 	linkSavedMap := make(map[string]struct{})
@@ -42,9 +63,12 @@ func NewWebGetter(levelMaxFlag int) *WebGetter {
 	}
 }
 
+/*
+Execute method
+*/
 func (receiver *WebGetter) Execute(url string) error {
 	receiver.urlWithoutSuffix = strings.TrimSuffix(url, "/")
-	receiver.urlWithSuffix = receiver.helper.AddUrlSuffix(url)
+	receiver.urlWithSuffix = receiver.helper.AddURLSuffix(url)
 
 	receiver.linkMap[receiver.urlWithSuffix] = ""
 
@@ -59,7 +83,7 @@ func (receiver *WebGetter) Execute(url string) error {
 				continue
 			}
 
-			receiver.currentUrl = link
+			receiver.currentURL = link
 
 			buffer, err := receiver.getResponseAndProcessContent()
 			if err != nil {
@@ -72,7 +96,7 @@ func (receiver *WebGetter) Execute(url string) error {
 
 			receiver.fileWriter.WriteContent(path, buffer.String())
 
-			receiver.linkSavedMap[receiver.currentUrl] = struct{}{}
+			receiver.linkSavedMap[receiver.currentURL] = struct{}{}
 		}
 
 		fmt.Printf("level %d: saving web content completed\n", receiver.currentLevel+1)
@@ -80,8 +104,8 @@ func (receiver *WebGetter) Execute(url string) error {
 
 	fmt.Println("start loading web resources")
 
-	for resourceUrl, resourcePath := range receiver.resourceMap {
-		receiver.fileWriter.WriteResourceFile(resourceUrl, resourcePath)
+	for resourceURL, resourcePath := range receiver.resourceMap {
+		receiver.fileWriter.WriteResourceFile(resourceURL, resourcePath)
 	}
 
 	fmt.Println("loading of web resources completed")
@@ -95,13 +119,13 @@ func (receiver *WebGetter) Execute(url string) error {
 }
 
 func (receiver *WebGetter) getResponseAndProcessContent() (*bytes.Buffer, error) {
-	response, errGet := http.Get(receiver.currentUrl)
+	response, errGet := http.Get(receiver.currentURL)
 	if errGet != nil {
 		return nil, errGet
 	}
 
 	if receiver.currentLevel == 0 {
-		receiver.rootPath = receiver.helper.AddUrlSuffix(response.Request.URL.Host)
+		receiver.rootPath = receiver.helper.AddURLSuffix(response.Request.URL.Host)
 	}
 
 	node, errParse := html.Parse(response.Body)
@@ -125,20 +149,20 @@ func (receiver *WebGetter) getResponseAndProcessContent() (*bytes.Buffer, error)
 
 func (receiver *WebGetter) processNodes(node *html.Node) {
 	if node.Type == html.ElementNode {
-		receiver.processHtmlElementNode(node)
+		receiver.processHTMLElementNode(node)
 	}
 	for child := node.FirstChild; child != nil; child = child.NextSibling {
 		receiver.processNodes(child)
 	}
 }
 
-func (receiver *WebGetter) processHtmlElementNode(node *html.Node) {
+func (receiver *WebGetter) processHTMLElementNode(node *html.Node) {
 	switch node.Data {
 	case TagA:
 		for key, attribute := range node.Attr {
 			if attribute.Key == "href" {
 				if strings.HasPrefix(attribute.Val, receiver.urlWithoutSuffix) {
-					attributeValue := receiver.helper.AddUrlSuffix(attribute.Val)
+					attributeValue := receiver.helper.AddURLSuffix(attribute.Val)
 					attributeValueTrimmed := strings.TrimPrefix(attributeValue, receiver.urlWithSuffix)
 
 					attribute.Val = receiver.helper.ConvertPreviousLink(
@@ -151,7 +175,7 @@ func (receiver *WebGetter) processHtmlElementNode(node *html.Node) {
 						receiver.linkMap[attributeValue] = receiver.rootPath + attributeValueTrimmed
 					}
 				} else if strings.HasPrefix(attribute.Val, ".") {
-					attributeValue := receiver.helper.AddUrlSuffix(attribute.Val)
+					attributeValue := receiver.helper.AddURLSuffix(attribute.Val)
 					attributeValue = strings.TrimLeft(attributeValue, "./")
 
 					attribute.Val = receiver.helper.ConvertPreviousLink(
@@ -170,12 +194,12 @@ func (receiver *WebGetter) processHtmlElementNode(node *html.Node) {
 	case TagIMG:
 		for key, attribute := range node.Attr {
 			if attribute.Key == "src" {
-				value := receiver.helper.ReplaceUrlToPath(attribute.Val)
+				value := receiver.helper.ReplaceURLToPath(attribute.Val)
 				value = strings.TrimPrefix(value, receiver.rootPath)
 				value = strings.TrimLeft(value, "./")
 
-				modifiedUrl := receiver.helper.ModifyUrl(attribute.Val, receiver.urlWithSuffix)
-				receiver.resourceMap[modifiedUrl] = receiver.rootPath + value
+				modifiedURL := receiver.helper.ModifyURL(attribute.Val, receiver.urlWithSuffix)
+				receiver.resourceMap[modifiedURL] = receiver.rootPath + value
 
 				attribute.Val = receiver.helper.ConvertPreviousLink(value, receiver.currentLevel)
 				node.Attr[key] = attribute
@@ -196,7 +220,7 @@ func (receiver *WebGetter) processHtmlElementNode(node *html.Node) {
 			htmlAttribute  html.Attribute
 			relKeyExist    bool
 			hrefKeyExist   bool
-			isCss          bool
+			isCSS          bool
 		)
 
 		for index, attribute := range node.Attr {
@@ -206,7 +230,7 @@ func (receiver *WebGetter) processHtmlElementNode(node *html.Node) {
 					attribute.Val == "apple-touch-icon" ||
 					attribute.Val == "EditURI" {
 					relKeyExist = true
-					isCss = attribute.Val == "stylesheet"
+					isCSS = attribute.Val == "stylesheet"
 					continue
 				}
 				break
@@ -217,7 +241,7 @@ func (receiver *WebGetter) processHtmlElementNode(node *html.Node) {
 		}
 
 		if relKeyExist && hrefKeyExist {
-			if isCss && !strings.HasSuffix(htmlAttribute.Val, ".css") {
+			if isCSS && !strings.HasSuffix(htmlAttribute.Val, ".css") {
 				htmlAttribute.Val = htmlAttribute.Val + ".css"
 			}
 			receiver.processAttributeValue(attributeIndex, htmlAttribute, node)
@@ -226,12 +250,12 @@ func (receiver *WebGetter) processHtmlElementNode(node *html.Node) {
 }
 
 func (receiver *WebGetter) processAttributeValue(attributeIndex int, attribute html.Attribute, node *html.Node) {
-	value := receiver.helper.ReplaceUrlToPath(attribute.Val)
+	value := receiver.helper.ReplaceURLToPath(attribute.Val)
 	value = strings.TrimPrefix(value, receiver.rootPath)
 	value = strings.TrimLeft(value, "./")
 
-	modifiedUrl := receiver.helper.ModifyUrl(attribute.Val, receiver.urlWithSuffix)
-	receiver.resourceMap[modifiedUrl] = receiver.rootPath + value
+	modifiedURL := receiver.helper.ModifyURL(attribute.Val, receiver.urlWithSuffix)
+	receiver.resourceMap[modifiedURL] = receiver.rootPath + value
 
 	attribute.Val = receiver.helper.ConvertPreviousLink(value, receiver.currentLevel)
 	attribute.Val = strings.ReplaceAll(attribute.Val, "%", "%25")

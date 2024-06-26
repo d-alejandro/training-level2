@@ -11,12 +11,18 @@ import (
 	"strings"
 )
 
+/*
+FileWriter structure
+*/
 type FileWriter struct {
 	currentDirectory string
 	helper           *Helper
 	resourceMap      map[string]string
 }
 
+/*
+NewFileWriter constructor
+*/
 func NewFileWriter() *FileWriter {
 	currentDirectory, directoryError := os.Getwd()
 	if directoryError != nil {
@@ -30,6 +36,9 @@ func NewFileWriter() *FileWriter {
 	}
 }
 
+/*
+WriteContent method
+*/
 func (receiver *FileWriter) WriteContent(path, content string) {
 	directory := receiver.currentDirectory + path
 
@@ -55,6 +64,9 @@ func (receiver *FileWriter) WriteContent(path, content string) {
 	receiver.closeFile(file)
 }
 
+/*
+WriteResourceFile method
+*/
 func (receiver *FileWriter) WriteResourceFile(url, path string) {
 	if url == "" || path == "" {
 		return
@@ -110,6 +122,9 @@ func (receiver *FileWriter) WriteResourceFile(url, path string) {
 	}
 }
 
+/*
+WriteCSSResources method
+*/
 func (receiver *FileWriter) WriteCSSResources() {
 	for url, path := range receiver.resourceMap {
 		receiver.WriteResourceFile(url, path)
@@ -134,12 +149,12 @@ func (receiver *FileWriter) processCSSFile(body, url string) {
 	}
 
 	for _, values := range array {
-		cssUrl := strings.TrimPrefix(values[1], "./")
-		cssUrl = strings.TrimPrefix(cssUrl, "/")
+		cssURL := strings.TrimPrefix(values[1], "./")
+		cssURL = strings.TrimPrefix(cssURL, "/")
 
-		resourceUrl := directory + cssUrl
-		resourcePath := filepath.Clean(receiver.helper.ReplaceUrlToPath(resourceUrl))
-		receiver.resourceMap[resourceUrl] = resourcePath
+		resourceURL := directory + cssURL
+		resourcePath := filepath.Clean(receiver.helper.ReplaceURLToPath(resourceURL))
+		receiver.resourceMap[resourceURL] = resourcePath
 	}
 }
 
