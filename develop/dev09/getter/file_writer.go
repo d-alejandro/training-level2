@@ -13,6 +13,7 @@ import (
 
 type FileWriter struct {
 	currentDirectory string
+	helper           *Helper
 }
 
 func NewFileWriter() *FileWriter {
@@ -21,7 +22,10 @@ func NewFileWriter() *FileWriter {
 		fmt.Println("Error:", directoryError.Error())
 		os.Exit(1)
 	}
-	return &FileWriter{currentDirectory + "/"}
+	return &FileWriter{
+		currentDirectory: currentDirectory + "/",
+		helper:           NewHelper(),
+	}
 }
 
 func (receiver *FileWriter) WriteContent(path, content string) {
@@ -126,16 +130,9 @@ func (receiver *FileWriter) processCSSFile(body, url string) {
 		cssUrl = strings.TrimPrefix(cssUrl, "/")
 
 		resourceUrl := directory + cssUrl
-		resourcePath := filepath.Clean(receiver.replaceUrlToPath(resourceUrl))
+		resourcePath := filepath.Clean(receiver.helper.ReplaceUrlToPath(resourceUrl))
 		receiver.WriteResourceFile(resourceUrl, resourcePath)
 	}
-}
-
-func (receiver *FileWriter) replaceUrlToPath(url string) string {
-	if strings.HasPrefix(url, "https://") {
-		return strings.TrimPrefix(url, "https://")
-	}
-	return strings.TrimPrefix(url, "http://")
 }
 
 func (receiver *FileWriter) closeFile(file *os.File) {

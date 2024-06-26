@@ -16,6 +16,7 @@ const TagLINK = "link"
 type WebGetter struct {
 	levelMaxFlag     int
 	fileWriter       *FileWriter
+	helper           *Helper
 	urlWithSuffix    string
 	urlWithoutSuffix string
 	currentUrl       string
@@ -34,6 +35,7 @@ func NewWebGetter(levelMaxFlag int) *WebGetter {
 	return &WebGetter{
 		levelMaxFlag: levelMaxFlag,
 		fileWriter:   NewFileWriter(),
+		helper:       NewHelper(),
 		linkMap:      linkMap,
 		linkSavedMap: linkSavedMap,
 		resourceMap:  imageMap,
@@ -42,7 +44,7 @@ func NewWebGetter(levelMaxFlag int) *WebGetter {
 
 func (receiver *WebGetter) Execute(url string) error {
 	receiver.urlWithoutSuffix = strings.TrimSuffix(url, "/")
-	receiver.urlWithSuffix = receiver.addUrlSuffix(url)
+	receiver.urlWithSuffix = receiver.helper.AddUrlSuffix(url)
 
 	receiver.linkMap[receiver.urlWithSuffix] = ""
 
@@ -94,7 +96,7 @@ func (receiver *WebGetter) getResponseAndProcessContent() (*bytes.Buffer, error)
 	}
 
 	if receiver.currentLevel == 0 {
-		receiver.rootPath = receiver.addUrlSuffix(response.Request.URL.Host)
+		receiver.rootPath = receiver.helper.AddUrlSuffix(response.Request.URL.Host)
 	}
 
 	node, errParse := html.Parse(response.Body)
@@ -116,13 +118,6 @@ func (receiver *WebGetter) getResponseAndProcessContent() (*bytes.Buffer, error)
 	return buffer, nil
 }
 
-func (receiver *WebGetter) addUrlSuffix(url string) string {
-	if strings.HasSuffix(url, "/") {
-		return url
-	}
-	return url + "/"
-}
-
 func (receiver *WebGetter) processNodes(node *html.Node) {
 	if node.Type == html.ElementNode {
 		receiver.processHtmlElementNode(node)
@@ -137,10 +132,13 @@ func (receiver *WebGetter) processHtmlElementNode(node *html.Node) {
 	case TagA:
 		for key, attribute := range node.Attr {
 			if attribute.Key == "href" && strings.HasPrefix(attribute.Val, receiver.urlWithoutSuffix) {
-				attributeValue := receiver.addUrlSuffix(attribute.Val)
+				attributeValue := receiver.helper.AddUrlSuffix(attribute.Val)
 				attributeValueTrimmed := strings.TrimPrefix(attributeValue, receiver.urlWithSuffix)
 
-				attribute.Val = receiver.convertPreviousLink(attributeValueTrimmed + "index.html")
+				attribute.Val = receiver.helper.ConvertPreviousLink(
+					attributeValueTrimmed+"index.html",
+					receiver.currentLevel,
+				)
 				node.Attr[key] = attribute
 
 				if _, isExist := receiver.linkSavedMap[attributeValue]; !isExist {
@@ -152,10 +150,10 @@ func (receiver *WebGetter) processHtmlElementNode(node *html.Node) {
 	case TagIMG:
 		for key, attribute := range node.Attr {
 			if attribute.Key == "src" {
-				value := receiver.replaceUrlToPath(attribute.Val)
+				value := receiver.helper.ReplaceUrlToPath(attribute.Val)
 				receiver.resourceMap[attribute.Val] = receiver.rootPath + value
 
-				attribute.Val = receiver.convertPreviousLink(value)
+				attribute.Val = receiver.helper.ConvertPreviousLink(value, receiver.currentLevel)
 				node.Attr[key] = attribute
 
 				break
@@ -203,44 +201,16 @@ func (receiver *WebGetter) processHtmlElementNode(node *html.Node) {
 	}
 }
 
-func (receiver *WebGetter) convertPreviousLink(link string) string {
-	if receiver.currentLevel > 0 {
-		backLink := strings.Repeat("../", receiver.currentLevel)
-		return backLink + link
-	}
-	return link
-}
-
-func (receiver *WebGetter) replaceUrlToPath(url string) string {
-	if strings.HasPrefix(url, "https://") {
-		return strings.TrimPrefix(url, "https://")
-	}
-	return strings.TrimPrefix(url, "http://")
-}
-
 func (receiver *WebGetter) processAttributeValue(attributeIndex int, attribute html.Attribute, node *html.Node) {
-	value := receiver.replaceUrlToPath(attribute.Val)
-	value = receiver.removeRootPath(value)
+	value := receiver.helper.ReplaceUrlToPath(attribute.Val)
+	value = strings.TrimPrefix(value, receiver.rootPath)
 	value = strings.TrimLeft(value, "/")
 
-	modifiedUrl := receiver.modifyUrl(attribute.Val)
+	modifiedUrl := receiver.helper.ModifyUrl(attribute.Val, receiver.urlWithSuffix)
 	receiver.resourceMap[modifiedUrl] = receiver.rootPath + value
 
-	attribute.Val = receiver.convertPreviousLink(value)
+	attribute.Val = receiver.helper.ConvertPreviousLink(value, receiver.currentLevel)
 	attribute.Val = strings.ReplaceAll(attribute.Val, "%", "%25")
 	attribute.Val = strings.ReplaceAll(attribute.Val, "?", "%3F")
 	node.Attr[attributeIndex] = attribute
-}
-
-func (receiver *WebGetter) removeRootPath(url string) string {
-	return strings.TrimPrefix(url, receiver.rootPath)
-}
-
-func (receiver *WebGetter) modifyUrl(url string) string {
-	if strings.HasPrefix(url, "http") {
-		return url
-	}
-
-	url = strings.TrimLeft(url, "/")
-	return receiver.urlWithSuffix + url
 }
