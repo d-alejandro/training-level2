@@ -36,6 +36,6 @@ func (receiver *Helper) ModifyUrl(url, urlWithSuffix string) string {
 		return url
 	}
 
-	url = strings.TrimLeft(url, "/")
+	url = strings.TrimLeft(url, "./")
 	return urlWithSuffix + url
 }

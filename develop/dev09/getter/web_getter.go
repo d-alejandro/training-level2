@@ -156,7 +156,11 @@ func (receiver *WebGetter) processHtmlElementNode(node *html.Node) {
 		for key, attribute := range node.Attr {
 			if attribute.Key == "src" {
 				value := receiver.helper.ReplaceUrlToPath(attribute.Val)
-				receiver.resourceMap[attribute.Val] = receiver.rootPath + value
+				value = strings.TrimPrefix(value, receiver.rootPath)
+				value = strings.TrimLeft(value, "./")
+
+				modifiedUrl := receiver.helper.ModifyUrl(attribute.Val, receiver.urlWithSuffix)
+				receiver.resourceMap[modifiedUrl] = receiver.rootPath + value
 
 				attribute.Val = receiver.helper.ConvertPreviousLink(value, receiver.currentLevel)
 				node.Attr[key] = attribute
@@ -209,7 +213,7 @@ func (receiver *WebGetter) processHtmlElementNode(node *html.Node) {
 func (receiver *WebGetter) processAttributeValue(attributeIndex int, attribute html.Attribute, node *html.Node) {
 	value := receiver.helper.ReplaceUrlToPath(attribute.Val)
 	value = strings.TrimPrefix(value, receiver.rootPath)
-	value = strings.TrimLeft(value, "/")
+	value = strings.TrimLeft(value, "./")
 
 	modifiedUrl := receiver.helper.ModifyUrl(attribute.Val, receiver.urlWithSuffix)
 	receiver.resourceMap[modifiedUrl] = receiver.rootPath + value
