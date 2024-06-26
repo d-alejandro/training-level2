@@ -6,10 +6,14 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
+	"slices"
+	"strings"
 )
 
 type FileWriter struct {
-	currentDirectory string
+	currentDirectory  string
+	resourceDirectory string
 }
 
 func NewFileWriter() *FileWriter {
@@ -18,7 +22,9 @@ func NewFileWriter() *FileWriter {
 		fmt.Println("Error:", directoryError.Error())
 		os.Exit(1)
 	}
-	return &FileWriter{currentDirectory + "/"}
+	return &FileWriter{
+		currentDirectory: currentDirectory + "/",
+	}
 }
 
 func (receiver *FileWriter) WriteContent(path, content string) {
@@ -38,7 +44,7 @@ func (receiver *FileWriter) WriteContent(path, content string) {
 		os.Exit(1)
 	}
 
-	if _, errorWrite := fmt.Fprintln(file, content); errorWrite != nil {
+	if _, errorWrite := fmt.Fprint(file, content); errorWrite != nil {
 		fmt.Println(errorWrite)
 		os.Exit(1)
 	}
@@ -55,6 +61,8 @@ func (receiver *FileWriter) WriteResourceFile(url, path string) {
 	if resourceFile == "" {
 		return
 	}
+
+	receiver.resourceDirectory = directory
 
 	directory = receiver.currentDirectory + directory
 
@@ -83,9 +91,48 @@ func (receiver *FileWriter) WriteResourceFile(url, path string) {
 		}
 	}()
 
-	if _, err := io.Copy(file, response.Body); err != nil {
-		fmt.Println(err.Error())
+	bodyBytes, readErr := io.ReadAll(response.Body)
+	if readErr != nil {
+		fmt.Println(readErr.Error())
 		os.Exit(1)
+	}
+
+	body := string(bodyBytes)
+
+	if _, errorWrite := fmt.Fprint(file, body); errorWrite != nil {
+		fmt.Println(errorWrite)
+		os.Exit(1)
+	}
+
+	if strings.HasSuffix(resourceFile, ".css") {
+		receiver.processCSSFile(body, url)
+	}
+}
+
+func (receiver *FileWriter) processCSSFile(body, url string) {
+	regExpr := regexp.MustCompile(`url\(["'](....[^:].+?)['"]\)`)
+
+	array := regExpr.FindAllStringSubmatch(body, -1)
+	if array == nil {
+		return
+	}
+
+	array = slices.CompactFunc(array, func(a, b []string) bool {
+		return a[0] == b[0]
+	})
+
+	directory, resourceFile := filepath.Split(url)
+	if resourceFile == "" {
+		return
+	}
+
+	for _, values := range array {
+		cssUrl := strings.TrimPrefix(values[1], "./")
+		cssUrl = strings.TrimPrefix(cssUrl, "/")
+
+		resourceUrl := directory + cssUrl
+		resourcePath := filepath.Join(receiver.resourceDirectory, cssUrl)
+		receiver.WriteResourceFile(resourceUrl, resourcePath)
 	}
 }
 
