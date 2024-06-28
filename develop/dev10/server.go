@@ -37,8 +37,10 @@ func handleClient(connection net.Conn) {
 
 	for {
 		readLength, readError := connection.Read(inputBytes)
-		if readLength == 0 || readError != nil {
+		if readError != nil {
 			fmt.Println(readError)
+			break
+		} else if readLength == 0 {
 			break
 		}
 
