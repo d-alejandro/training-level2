@@ -2,11 +2,10 @@ package main
 
 import (
 	"bufio"
+	"d-alejandro/training-level2/develop/dev10/socket"
 	"flag"
 	"fmt"
-	"net"
 	"os"
-	"sync"
 	"time"
 )
 
@@ -44,37 +43,27 @@ func main() {
 		printMessageAndExit("wrong number of parameters.")
 	}
 
-	var waitGroup sync.WaitGroup
-	waitGroup.Add(1)
-
-	const NetworkProtocolTCP = "tcp"
-	address := net.JoinHostPort(arguments[0], arguments[1])
-	connection, connectionError := net.DialTimeout(NetworkProtocolTCP, address, *timeoutDurationFlag)
-
-	if connectionError != nil {
-		printMessageAndExit(connectionError.Error())
+	client, clientError := socket.NewClient(arguments[0], arguments[1], *timeoutDurationFlag)
+	if clientError != nil {
+		printMessageAndExit(clientError.Error())
 	}
-	defer func() {
-		if err := connection.Close(); err != nil {
-			printMessageAndExit(err.Error())
-		}
-	}()
 
 	scanner := bufio.NewScanner(os.Stdin)
 
 	for scanner.Scan() {
 		text := scanner.Text()
-		_ = text
-		//if text == "" {
-		//	continue
-		//}
-		//
-		//if text == "q" || text == "quit" || text == "exit" {
-		//	break
-		//}
+
+		response, err := client.Send(text)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		fmt.Println(response)
 	}
-	waitGroup.Done()
-	waitGroup.Wait()
+
+	if err := client.Stop(); err != nil {
+		fmt.Println(err)
+	}
 }
 
 func printMessageAndExit(message string) {
