@@ -1,8 +1,11 @@
 package socket
 
 import (
+	"bufio"
 	"fmt"
+	"io"
 	"net"
+	"strings"
 	"sync"
 	"unsafe"
 )
@@ -78,29 +81,28 @@ func (receiver *Server) handleConnection(connection net.Conn) {
 		}
 	}()
 
-	var buffer []byte
+	remoteAddr := connection.RemoteAddr()
 
 	for {
-		readLength, readError := connection.Read(buffer)
+		inputString, readError := bufio.NewReader(connection).ReadString('\n')
 		if readError != nil {
+			if readError == io.EOF {
+				fmt.Printf("client %v closed\n", remoteAddr)
+				return
+			}
 			fmt.Println(readError)
 			return
 		}
 
-		if readLength == 0 {
-			return
+		if inputString == "\n" {
+			continue
 		}
 
-		inputString := string(buffer)
+		inputString = strings.TrimSpace(inputString)
 
-		fmt.Printf("received from %v: %s", connection.RemoteAddr(), inputString)
+		fmt.Printf("received from %v: '%s'\n", remoteAddr, inputString)
 
-		outputString := fmt.Sprintf(
-			"read length: %d, length: %d, size: %d",
-			readLength,
-			len(inputString),
-			unsafe.Sizeof(inputString),
-		)
+		outputString := fmt.Sprintf("read length: %d, size: %d\n", len(inputString), unsafe.Sizeof(inputString))
 
 		_, writeError := connection.Write([]byte(outputString))
 		if writeError != nil {
