@@ -1,75 +1,28 @@
 package main
 
 import (
+	"d-alejandro/training-level2/develop/dev10/socket"
 	"fmt"
-	"net"
 	"os"
-	"unsafe"
+	"os/signal"
 )
 
 func main() {
 	const NetworkProtocolTCP = "tcp"
-	const NetworkAddress = ":8080"
+	const NetworkAddress = "localhost:8080"
 
-	listener, listeningError := net.Listen(NetworkProtocolTCP, NetworkAddress)
-	if listeningError != nil {
-		printErrorAndExit(listeningError)
+	server, serverError := socket.NewServer(NetworkProtocolTCP, NetworkAddress)
+
+	if serverError != nil {
+		printErrorAndExit(serverError)
 	}
-	defer closeListener(listener)
 
-	for {
-		connection, connectionError := listener.Accept()
+	channel := make(chan os.Signal, 1)
+	signal.Notify(channel, os.Interrupt)
+	<-channel
 
-		if connectionError != nil {
-			fmt.Println(connectionError)
-			closeConnection(connection)
-			continue
-		}
-
-		go handleClient(connection)
-	}
-}
-
-func handleClient(connection net.Conn) {
-	defer closeConnection(connection)
-
-	var inputBytes []byte
-
-	for {
-		readLength, readError := connection.Read(inputBytes)
-		if readError != nil {
-			fmt.Println(readError)
-			break
-		} else if readLength == 0 {
-			break
-		}
-
-		inputString := string(inputBytes)
-
-		outputString := fmt.Sprintf(
-			"read length: %d, length: %d, size: %d",
-			readLength,
-			len(inputString),
-			unsafe.Sizeof(inputString),
-		)
-
-		_, writeError := connection.Write([]byte(outputString))
-		if writeError != nil {
-			fmt.Println(writeError)
-			break
-		}
-	}
-}
-
-func closeListener(listener net.Listener) {
-	if err := listener.Close(); err != nil {
+	if err := server.Stop(); err != nil {
 		printErrorAndExit(err)
-	}
-}
-
-func closeConnection(connection net.Conn) {
-	if err := connection.Close(); err != nil {
-		fmt.Println(err)
 	}
 }
 
