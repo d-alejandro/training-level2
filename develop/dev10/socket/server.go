@@ -58,7 +58,6 @@ func (receiver *Server) serve() {
 				return
 			default:
 				fmt.Println(err)
-				receiver.closeConnection(connection)
 				continue
 			}
 		}
@@ -73,7 +72,11 @@ func (receiver *Server) serve() {
 }
 
 func (receiver *Server) handleConnection(connection net.Conn) {
-	defer receiver.closeConnection(connection)
+	defer func() {
+		if err := connection.Close(); err != nil {
+			fmt.Println(err)
+		}
+	}()
 
 	var buffer []byte
 
@@ -104,11 +107,5 @@ func (receiver *Server) handleConnection(connection net.Conn) {
 			fmt.Println(writeError)
 			return
 		}
-	}
-}
-
-func (receiver *Server) closeConnection(connection net.Conn) {
-	if err := connection.Close(); err != nil {
-		fmt.Println(err)
 	}
 }
