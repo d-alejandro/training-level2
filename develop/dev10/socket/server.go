@@ -83,10 +83,13 @@ func (receiver *Server) handleConnection(connection net.Conn) {
 
 	remoteAddr := connection.RemoteAddr()
 
-	reader := bufio.NewReader(connection)
+	readWriter := bufio.NewReadWriter(
+		bufio.NewReader(connection),
+		bufio.NewWriter(connection),
+	)
 
 	for {
-		inputString, readError := reader.ReadString('\n')
+		inputString, readError := readWriter.ReadString('\n')
 		if readError != nil {
 			if readError == io.EOF {
 				fmt.Printf("client %v closed\n", remoteAddr)
@@ -106,9 +109,13 @@ func (receiver *Server) handleConnection(connection net.Conn) {
 
 		outputString := fmt.Sprintf("read length: %d, size: %d\n", len(inputString), unsafe.Sizeof(inputString))
 
-		_, writeError := connection.Write([]byte(outputString))
-		if writeError != nil {
-			fmt.Println(writeError)
+		if _, err := readWriter.WriteString(outputString); err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		if err := readWriter.Flush(); err != nil {
+			fmt.Println(err)
 			return
 		}
 	}
