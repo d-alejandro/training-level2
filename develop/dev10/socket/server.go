@@ -83,8 +83,10 @@ func (receiver *Server) handleConnection(connection net.Conn) {
 
 	remoteAddr := connection.RemoteAddr()
 
+	reader := bufio.NewReader(connection)
+
 	for {
-		inputString, readError := bufio.NewReader(connection).ReadString('\n')
+		inputString, readError := reader.ReadString('\n')
 		if readError != nil {
 			if readError == io.EOF {
 				fmt.Printf("client %v closed\n", remoteAddr)
