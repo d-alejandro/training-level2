@@ -13,14 +13,14 @@ import (
 )
 
 type Server struct {
-	listener  net.Listener
-	quit      chan struct{}
-	waitGroup sync.WaitGroup
+	listener    net.Listener
+	quitChannel chan struct{}
+	waitGroup   sync.WaitGroup
 }
 
 func NewServer(network, address string) (*Server, error) {
 	server := &Server{
-		quit: make(chan struct{}),
+		quitChannel: make(chan struct{}),
 	}
 
 	var err error
@@ -38,7 +38,7 @@ func NewServer(network, address string) (*Server, error) {
 }
 
 func (receiver *Server) Stop() error {
-	close(receiver.quit)
+	close(receiver.quitChannel)
 
 	if err := receiver.listener.Close(); err != nil {
 		return err
@@ -59,7 +59,7 @@ func (receiver *Server) serve() {
 
 		if err != nil {
 			select {
-			case <-receiver.quit:
+			case <-receiver.quitChannel:
 				return
 			default:
 				fmt.Println(err)
@@ -96,7 +96,7 @@ func (receiver *Server) handleConnection(connection net.Conn) {
 
 	for {
 		select {
-		case <-receiver.quit:
+		case <-receiver.quitChannel:
 			return
 		default:
 		}
