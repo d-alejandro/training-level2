@@ -75,9 +75,11 @@ func main() {
 		connectionController.Stop()
 	}()
 
-	<-connectionController.CheckConnection()
+	<-connectionController.GetQuitChannel()
 
 	client.Stop()
+
+	connectionController.Stop()
 }
 
 func printMessageAndExit(message string) {
