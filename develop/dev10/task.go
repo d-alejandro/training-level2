@@ -43,27 +43,41 @@ func main() {
 		printMessageAndExit("wrong number of parameters.")
 	}
 
+	connectionController, connectionControllerError := socket.NewConnectionController(
+		arguments[0],
+		arguments[1],
+		*timeoutDurationFlag,
+	)
+	if connectionControllerError != nil {
+		printMessageAndExit(connectionControllerError.Error())
+	}
+
 	client, clientError := socket.NewClient(arguments[0], arguments[1], *timeoutDurationFlag)
 	if clientError != nil {
 		printMessageAndExit(clientError.Error())
 	}
 
-	scanner := bufio.NewScanner(os.Stdin)
+	go func() {
+		scanner := bufio.NewScanner(os.Stdin)
 
-	for scanner.Scan() {
-		text := scanner.Text()
+		for scanner.Scan() {
+			text := scanner.Text()
 
-		response, err := client.Send(text)
-		if err != nil {
-			fmt.Println(err)
+			response, err := client.Send(text)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+
+			fmt.Println(response)
 		}
 
-		fmt.Println(response)
-	}
+		connectionController.Stop()
+	}()
 
-	if err := client.Stop(); err != nil {
-		fmt.Println(err)
-	}
+	<-connectionController.CheckConnection()
+
+	client.Stop()
 }
 
 func printMessageAndExit(message string) {

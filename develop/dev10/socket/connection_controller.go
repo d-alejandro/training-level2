@@ -38,12 +38,18 @@ func (receiver *ConnectionController) CheckConnection() <-chan struct{} {
 		buffer := make([]byte, 10)
 
 		if _, err := receiver.connection.Read(buffer); err != nil {
-			if err == io.EOF {
-				fmt.Println("check connection: server closed.")
-				receiver.Stop()
+			select {
+			case <-receiver.quitChannel:
+				fmt.Println("use of closed network connection.")
 				return
+			default:
+				if err == io.EOF {
+					fmt.Println("server closed.")
+					receiver.Stop()
+					return
+				}
+				fmt.Println("check connection controller:", err)
 			}
-			fmt.Println("check connection:", err)
 		}
 	}()
 
