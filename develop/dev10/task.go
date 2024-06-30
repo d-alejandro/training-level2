@@ -78,7 +78,6 @@ func main() {
 	<-connectionController.GetQuitChannel()
 
 	client.Stop()
-
 	connectionController.Stop()
 }
 

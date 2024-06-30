@@ -64,7 +64,7 @@ func (receiver *ConnectionController) checkConnection() {
 	if _, err := receiver.connection.Read(buffer); err != nil {
 		select {
 		case <-receiver.quitChannel:
-			fmt.Println("use of closed network connection.")
+			fmt.Println("closing the network connection.")
 			return
 		default:
 			if err == io.EOF {
