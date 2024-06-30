@@ -2,11 +2,13 @@ package socket
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"net"
 	"strings"
 	"sync"
+	"time"
 	"unsafe"
 )
 
@@ -65,6 +67,8 @@ func (receiver *Server) serve() {
 			}
 		}
 
+		fmt.Printf("client %v connected\n", connection.RemoteAddr())
+
 		receiver.waitGroup.Add(1)
 
 		go func() {
@@ -88,19 +92,37 @@ func (receiver *Server) handleConnection(connection net.Conn) {
 		bufio.NewWriter(connection),
 	)
 
+	const DeadlineTimeSecond = 15 * time.Second
+
 	for {
+		select {
+		case <-receiver.quit:
+			return
+		default:
+		}
+
+		deadlineTime := time.Now().Add(DeadlineTimeSecond)
+		if err := connection.SetDeadline(deadlineTime); err != nil {
+			return
+		}
+
 		inputString, readError := readWriter.ReadString('\n')
 		if readError != nil {
+			var opError *net.OpError
+
 			if readError == io.EOF {
 				fmt.Printf("client %v closed\n", remoteAddr)
 				return
+			} else if errors.As(readError, &opError) && opError.Timeout() {
+				fmt.Println(readError)
+				continue
 			}
 			fmt.Println(readError)
 			return
 		}
 
 		if inputString == "\n" {
-			continue
+			return
 		}
 
 		inputString = strings.TrimSpace(inputString)
