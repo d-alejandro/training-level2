@@ -2,6 +2,8 @@ package socket
 
 import (
 	"bufio"
+	"errors"
+	"fmt"
 	"net"
 	"strings"
 	"time"
@@ -35,6 +37,10 @@ func NewClient(host, port string, timeout time.Duration) (*Client, error) {
 }
 
 func (receiver *Client) Send(message string) (string, error) {
+	if message == "" {
+		return "", errors.New("message is empty")
+	}
+
 	if _, err := receiver.readWriter.WriteString(message + "\n"); err != nil {
 		return "", err
 	}
@@ -51,9 +57,8 @@ func (receiver *Client) Send(message string) (string, error) {
 	return strings.TrimSpace(readString), nil
 }
 
-func (receiver *Client) Stop() error {
+func (receiver *Client) Stop() {
 	if err := receiver.connection.Close(); err != nil {
-		return err
+		fmt.Println(err)
 	}
-	return nil
 }
