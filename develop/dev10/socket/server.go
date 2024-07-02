@@ -12,12 +12,18 @@ import (
 	"unsafe"
 )
 
+/*
+Server structure
+*/
 type Server struct {
 	listener    net.Listener
 	quitChannel chan struct{}
 	waitGroup   sync.WaitGroup
 }
 
+/*
+NewServer constructor
+*/
 func NewServer(network, address string) (*Server, error) {
 	server := &Server{
 		quitChannel: make(chan struct{}),
@@ -37,6 +43,9 @@ func NewServer(network, address string) (*Server, error) {
 	return server, nil
 }
 
+/*
+Stop method
+*/
 func (receiver *Server) Stop() error {
 	close(receiver.quitChannel)
 

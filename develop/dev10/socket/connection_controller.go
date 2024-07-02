@@ -8,6 +8,9 @@ import (
 	"time"
 )
 
+/*
+ConnectionController structure
+*/
 type ConnectionController struct {
 	connection  net.Conn
 	quitChannel chan struct{}
@@ -15,6 +18,9 @@ type ConnectionController struct {
 	waitGroup   sync.WaitGroup
 }
 
+/*
+NewConnectionController constructor
+*/
 func NewConnectionController(host, port string, timeout time.Duration) (*ConnectionController, error) {
 	const NetworkProtocolTCP = "tcp"
 
@@ -37,10 +43,16 @@ func NewConnectionController(host, port string, timeout time.Duration) (*Connect
 	return connectionController, nil
 }
 
+/*
+GetQuitChannel method
+*/
 func (receiver *ConnectionController) GetQuitChannel() <-chan struct{} {
 	return receiver.quitChannel
 }
 
+/*
+Stop method
+*/
 func (receiver *ConnectionController) Stop() {
 	receiver.closeQuitChannel()
 

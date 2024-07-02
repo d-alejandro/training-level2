@@ -9,11 +9,17 @@ import (
 	"time"
 )
 
+/*
+Client structure
+*/
 type Client struct {
 	connection net.Conn
 	readWriter *bufio.ReadWriter
 }
 
+/*
+NewClient constructor
+*/
 func NewClient(host, port string, timeout time.Duration) (*Client, error) {
 	const NetworkProtocolTCP = "tcp"
 
@@ -36,6 +42,9 @@ func NewClient(host, port string, timeout time.Duration) (*Client, error) {
 	return client, nil
 }
 
+/*
+Send method
+*/
 func (receiver *Client) Send(message string) (string, error) {
 	if message == "" {
 		return "", errors.New("message is empty")
@@ -57,6 +66,9 @@ func (receiver *Client) Send(message string) (string, error) {
 	return strings.TrimSpace(readString), nil
 }
 
+/*
+Stop method
+*/
 func (receiver *Client) Stop() {
 	if err := receiver.connection.Close(); err != nil {
 		fmt.Println(err)
