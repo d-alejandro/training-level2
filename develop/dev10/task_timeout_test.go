@@ -2,6 +2,8 @@ package main
 
 import (
 	"d-alejandro/training-level2/develop/dev10/socket"
+	"errors"
+	"net"
 	"testing"
 	"time"
 )
@@ -25,12 +27,14 @@ func TestTimeoutClientSend(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
+			var clientError error
+
 			done := make(chan struct{})
 
 			start := time.Now()
 
 			go func() {
-				_, _ = socket.NewClient(test.inputHost, test.inputPort, test.inputTimeoutDurationFlag)
+				_, clientError = socket.NewClient(test.inputHost, test.inputPort, test.inputTimeoutDurationFlag)
 				close(done)
 			}()
 
@@ -48,6 +52,14 @@ func TestTimeoutClientSend(t *testing.T) {
 					time.Since(start),
 				)
 			case <-done:
+			}
+
+			var opError *net.OpError
+
+			if errors.As(clientError, &opError) && opError.Timeout() {
+				return
+			} else {
+				t.Error("Expected timeout error, but got none.")
 			}
 		})
 	}
