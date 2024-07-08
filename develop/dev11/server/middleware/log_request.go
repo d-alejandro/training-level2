@@ -24,21 +24,22 @@ func (receiver *LogRequest) ServeHTTP(responseWriter http.ResponseWriter, reques
 
 	duration := time.Since(timeStart)
 
-	requestHeader, marshalHeaderError := json.MarshalIndent(request.Header, "", "  ")
-	if marshalHeaderError != nil {
-		log.Println("marshal error:", marshalHeaderError)
+	requestHeader, encodedHeaderError := receiver.encodeRequest(request.Header)
+	if encodedHeaderError != nil {
+		log.Println("marshal error:", encodedHeaderError)
 		return
 	}
 
-	parseError := request.ParseForm()
-	if parseError != nil {
-		log.Println("parse error:", parseError)
-		return
+	if request.Form == nil {
+		if err := request.ParseForm(); err != nil {
+			log.Println("parse error:", err)
+			return
+		}
 	}
 
-	requestForm, marshalFormError := json.MarshalIndent(request.Form, "", "  ")
-	if marshalFormError != nil {
-		log.Println("marshal error:", marshalFormError)
+	requestForm, encodedFormError := receiver.encodeRequest(request.Form)
+	if encodedFormError != nil {
+		log.Println("marshal error:", encodedFormError)
 		return
 	}
 
@@ -47,8 +48,18 @@ func (receiver *LogRequest) ServeHTTP(responseWriter http.ResponseWriter, reques
 		request.Method,
 		request.RequestURI,
 		request.RemoteAddr,
-		string(requestHeader),
-		string(requestForm),
+		requestHeader,
+		requestForm,
 		duration,
 	)
+}
+
+func (receiver *LogRequest) encodeRequest(request any) (string, error) {
+	data, err := json.MarshalIndent(request, "", "  ")
+
+	if err != nil {
+		return "", err
+	}
+
+	return string(data), nil
 }
