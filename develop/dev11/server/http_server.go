@@ -1,6 +1,7 @@
 package server
 
 import (
+	"d-alejandro/training-level2/develop/dev11/server/bindings"
 	"d-alejandro/training-level2/develop/dev11/server/middleware"
 	"fmt"
 	"net"
@@ -18,7 +19,8 @@ func NewHTTPServer() *HTTPServer {
 func (receiver *HTTPServer) ListenAndServe() {
 	serveMux := http.NewServeMux()
 
-	InitRoutes(serveMux)
+	handlerBinding := bindings.NewHandlerBinding()
+	InitRoutes(serveMux, handlerBinding)
 
 	handler := middleware.NewLogRequest(serveMux)
 	handler = middleware.NewPanicRecovery(handler)
