@@ -1,6 +1,7 @@
 package validators
 
 import (
+	"d-alejandro/training-level2/develop/dev11/server/dto"
 	"github.com/go-playground/validator/v10"
 	"net/http"
 )
@@ -14,14 +15,17 @@ func NewEventRequestValidator() *EventRequestValidator {
 	return &EventRequestValidator{}
 }
 
-func (receiver *EventRequestValidator) Validate(request *http.Request) error {
+func (receiver *EventRequestValidator) Validate(request *http.Request) (*dto.EventRequestDTO, error) {
 	if err := request.ParseForm(); err != nil {
-		return err
+		return nil, err
 	}
 
 	receiver.Name = request.FormValue("name")
 	receiver.Date = request.FormValue("date")
 
+	eventRequestDTO := dto.NewEventRequestDTO(receiver.Name, receiver.Date)
+
 	validate := validator.New(validator.WithRequiredStructEnabled())
-	return validate.Struct(receiver)
+
+	return eventRequestDTO, validate.Struct(receiver)
 }
