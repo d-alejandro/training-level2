@@ -11,7 +11,7 @@ type LogRequest struct {
 	nextHandler http.Handler
 }
 
-func NewLogRequest(handler http.Handler) *LogRequest {
+func NewLogRequest(handler http.Handler) http.Handler {
 	return &LogRequest{
 		nextHandler: handler,
 	}
