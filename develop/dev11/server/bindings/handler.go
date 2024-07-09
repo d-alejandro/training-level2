@@ -9,8 +9,10 @@ type HandlerBinding struct {
 }
 
 func NewHandlerBinding() *HandlerBinding {
+	useCaseBinding := NewUseCaseBinding()
+
 	return &HandlerBinding{
-		EventCreationHandler:   handlers.NewEventCreationHandler(),
+		EventCreationHandler:   handlers.NewEventCreationHandler(useCaseBinding.EventCreationUseCase),
 		EventUpdateHandler:     handlers.NewEventUpdateHandler(),
 		EventShowForDayHandler: handlers.NewEventShowForDayHandler(),
 	}
