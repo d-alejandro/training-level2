@@ -10,14 +10,18 @@ type EventRequestValidator struct {
 	Date string `json:"date" validate:"required,datetime=2006-01-02"`
 }
 
-func NewEventRequestValidator(parsedRequest *http.Request) *EventRequestValidator {
-	return &EventRequestValidator{
-		Name: parsedRequest.FormValue("name"),
-		Date: parsedRequest.FormValue("date"),
-	}
+func NewEventRequestValidator() *EventRequestValidator {
+	return &EventRequestValidator{}
 }
 
-func (receiver *EventRequestValidator) Validate() error {
+func (receiver *EventRequestValidator) Validate(request *http.Request) error {
+	if err := request.ParseForm(); err != nil {
+		return err
+	}
+
+	receiver.Name = request.FormValue("name")
+	receiver.Date = request.FormValue("date")
+
 	validate := validator.New(validator.WithRequiredStructEnabled())
 	return validate.Struct(receiver)
 }

@@ -15,15 +15,10 @@ func NewEventCreationHandler() *EventCreationHandler {
 }
 
 func (receiver *EventCreationHandler) ServeHTTP(responseWriter http.ResponseWriter, request *http.Request) {
+	eventRequestValidator := validators.NewEventRequestValidator()
 	errorPresenter := presenters.NewErrorPresenter(responseWriter)
 
-	if err := request.ParseForm(); err != nil {
-		errorPresenter.Present(http.StatusBadRequest, err)
-		return
-	}
-
-	eventRequestValidator := validators.NewEventRequestValidator(request)
-	if err := eventRequestValidator.Validate(); err != nil {
+	if err := eventRequestValidator.Validate(request); err != nil {
 		errorPresenter.Present(http.StatusBadRequest, err)
 		return
 	}
