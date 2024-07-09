@@ -3,6 +3,7 @@ package presenters
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 )
 
@@ -24,12 +25,12 @@ func (presenter *ErrorPresenter) Present(statusCode int, errorMessage any) {
 	status := http.StatusText(statusCode)
 	errorResponse := NewErrorResponse(message, status)
 
-	response, encodedError := json.Marshal(errorResponse)
+	encodedErrorResponse, encodedError := json.Marshal(errorResponse)
 	if encodedError != nil {
-		panic(encodedError)
+		log.Println(encodedError)
 	}
 
-	if _, err := presenter.responseWriter.Write(response); err != nil {
-		panic(err)
+	if _, err := presenter.responseWriter.Write(encodedErrorResponse); err != nil {
+		log.Println(err)
 	}
 }

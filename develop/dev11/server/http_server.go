@@ -20,14 +20,13 @@ func (receiver *HTTPServer) ListenAndServe() {
 
 	InitRoutes(serveMux)
 
-	logRequest := middleware.NewLogRequest(serveMux)
+	handler := middleware.NewLogRequest(serveMux)
+	handler = middleware.NewPanicRecovery(handler)
 
 	httpConfigs := GetConfigs()["http"].(map[string]string)
 	address := net.JoinHostPort(httpConfigs["host"], httpConfigs["port"])
 
-	err := http.ListenAndServe(address, logRequest)
-
-	if err != nil {
+	if err := http.ListenAndServe(address, handler); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
