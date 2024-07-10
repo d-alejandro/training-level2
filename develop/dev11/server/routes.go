@@ -8,5 +8,6 @@ import (
 func BindRouteHandlers(serveMux *http.ServeMux, handler *bindings.HandlerBinding) {
 	serveMux.Handle("POST /create_event", handler.EventCreationHandler)
 	serveMux.Handle("POST /update_event/{id}", handler.EventUpdateHandler)
+	serveMux.Handle("POST /delete_event/{id}", handler.EventDeletionHandler)
 	serveMux.Handle("GET /events_for_day", handler.EventShowForDayHandler)
 }
