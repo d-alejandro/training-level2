@@ -6,13 +6,17 @@ import (
 )
 
 type RepositoryBinding struct {
-	EventCreationRepository *repositories.EventCreationRepository
+	EventCreationRepository   *repositories.EventCreationRepository
+	EventSearchByIdRepository *repositories.EventSearchByIdRepository
+	EventUpdateRepository     *repositories.EventUpdateRepository
 }
 
 func NewRepositoryBinding() *RepositoryBinding {
 	dbConnection := database.GetDatabaseConnection()
 
 	return &RepositoryBinding{
-		EventCreationRepository: repositories.NewEventCreationRepository(dbConnection),
+		EventCreationRepository:   repositories.NewEventCreationRepository(dbConnection),
+		EventSearchByIdRepository: repositories.NewEventSearchByIdRepository(dbConnection),
+		EventUpdateRepository:     repositories.NewEventUpdateRepository(dbConnection),
 	}
 }

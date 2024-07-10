@@ -13,7 +13,7 @@ func NewHandlerBinding() *HandlerBinding {
 
 	return &HandlerBinding{
 		EventCreationHandler:   handlers.NewEventCreationHandler(useCaseBinding.EventCreationUseCase),
-		EventUpdateHandler:     handlers.NewEventUpdateHandler(),
+		EventUpdateHandler:     handlers.NewEventUpdateHandler(useCaseBinding.EventUpdateUseCase),
 		EventShowForDayHandler: handlers.NewEventShowForDayHandler(),
 	}
 }

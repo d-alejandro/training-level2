@@ -1,17 +1,38 @@
 package handlers
 
 import (
-	"fmt"
+	"d-alejandro/training-level2/develop/dev11/server/handlers/contracts"
+	"d-alejandro/training-level2/develop/dev11/server/presenters"
+	"d-alejandro/training-level2/develop/dev11/server/validators"
 	"net/http"
 )
 
 type EventUpdateHandler struct {
+	useCase contracts.EventUpdateUseCaseContract
 }
 
-func NewEventUpdateHandler() *EventUpdateHandler {
-	return &EventUpdateHandler{}
+func NewEventUpdateHandler(useCase contracts.EventUpdateUseCaseContract) *EventUpdateHandler {
+	return &EventUpdateHandler{useCase}
 }
 
 func (receiver *EventUpdateHandler) ServeHTTP(responseWriter http.ResponseWriter, request *http.Request) {
-	fmt.Fprint(responseWriter, "EventUpdateHandler")
+	eventRequestValidator := validators.NewEventRequestValidator()
+	errorPresenter := presenters.NewErrorPresenter(responseWriter)
+
+	eventRequestDTO, validationError := eventRequestValidator.Validate(request)
+	if validationError != nil {
+		errorPresenter.Present(http.StatusBadRequest, validationError)
+		return
+	}
+
+	id := request.PathValue("id")
+
+	event, useCaseError := receiver.useCase.Execute(id, eventRequestDTO)
+	if useCaseError != nil {
+		errorPresenter.Present(http.StatusServiceUnavailable, useCaseError)
+		return
+	}
+
+	eventPresenter := presenters.NewEventPresenter(responseWriter)
+	eventPresenter.Present(event)
 }
