@@ -19,7 +19,7 @@ func NewHTTPServer() *HTTPServer {
 func (receiver *HTTPServer) ListenAndServe() {
 	serveMux := http.NewServeMux()
 
-	bindRouteHandlers(serveMux, bindings.NewHandlerBinding())
+	BindRouteHandlers(serveMux, bindings.NewHandlerBinding())
 
 	handler := receiver.bindMiddleware(serveMux)
 
