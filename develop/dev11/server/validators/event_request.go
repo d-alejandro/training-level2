@@ -23,9 +23,13 @@ func (receiver *EventRequestValidator) Validate(request *http.Request) (*dto.Eve
 	receiver.Name = request.FormValue("name")
 	receiver.Date = request.FormValue("date")
 
-	eventRequestDTO := dto.NewEventRequestDTO(receiver.Name, receiver.Date)
-
 	validate := validator.New(validator.WithRequiredStructEnabled())
 
-	return eventRequestDTO, validate.Struct(receiver)
+	if err := validate.Struct(receiver); err != nil {
+		return nil, err
+	}
+
+	eventRequestDTO := dto.NewEventRequestDTO(receiver.Name, receiver.Date)
+
+	return eventRequestDTO, nil
 }
