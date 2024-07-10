@@ -2,9 +2,9 @@ package use_cases
 
 import (
 	"d-alejandro/training-level2/develop/dev11/server/dto"
+	"d-alejandro/training-level2/develop/dev11/server/helpers"
 	"d-alejandro/training-level2/develop/dev11/server/models"
 	"d-alejandro/training-level2/develop/dev11/server/use_cases/contracts"
-	"time"
 )
 
 type EventCreationUseCase struct {
@@ -16,9 +16,7 @@ func NewEventCreationUseCase(repository contracts.EventCreationRepositoryContrac
 }
 
 func (receiver *EventCreationUseCase) Execute(dto *dto.EventRequestDTO) (*models.Event, error) {
-	const layout = "2006-01-02"
-
-	date, err := time.Parse(layout, dto.GetDate())
+	date, err := helpers.ParseDate(dto.GetDate())
 
 	if err != nil {
 		return nil, err

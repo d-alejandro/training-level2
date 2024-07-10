@@ -6,5 +6,5 @@ import (
 )
 
 type EventCreationRepositoryContract interface {
-	Make(name string, date time.Time) (*models.Event, error)
+	Make(name string, date *time.Time) (*models.Event, error)
 }

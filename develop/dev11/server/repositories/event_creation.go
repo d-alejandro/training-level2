@@ -15,13 +15,13 @@ func NewEventCreationRepository(dbConnection database.CacheContract) *EventCreat
 	return &EventCreationRepository{dbConnection}
 }
 
-func (receiver *EventCreationRepository) Make(name string, date time.Time) (*models.Event, error) {
+func (receiver *EventCreationRepository) Make(name string, date *time.Time) (*models.Event, error) {
 	id := uuid.Must(uuid.NewRandom()).String()
 
 	event := &models.Event{
 		ID:   id,
 		Name: name,
-		Date: date,
+		Date: *date,
 	}
 
 	if err := receiver.dbConnection.SetEvent(id, event); err != nil {
