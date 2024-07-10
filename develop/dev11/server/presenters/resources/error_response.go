@@ -1,4 +1,4 @@
-package presenters
+package resources
 
 type ErrorResponse struct {
 	Error struct {

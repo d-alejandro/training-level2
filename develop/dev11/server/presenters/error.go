@@ -1,6 +1,7 @@
 package presenters
 
 import (
+	"d-alejandro/training-level2/develop/dev11/server/presenters/resources"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -23,7 +24,7 @@ func (presenter *ErrorPresenter) Present(statusCode int, errorMessage any) {
 
 	message := fmt.Sprint(errorMessage)
 	status := http.StatusText(statusCode)
-	errorResponse := NewErrorResponse(message, status)
+	errorResponse := resources.NewErrorResponse(message, status)
 
 	encodedErrorResponse, encodedError := json.Marshal(errorResponse)
 	if encodedError != nil {
