@@ -21,12 +21,18 @@ func (presenter *EventPresenter) Present(event *models.Event) {
 
 	presenter.responseWriter.WriteHeader(http.StatusOK)
 
-	jsonModel, encodedError := json.Marshal(event)
+	response := struct {
+		Result *models.Event `json:"response"`
+	}{
+		Result: event,
+	}
+
+	encodedResponse, encodedError := json.Marshal(response)
 	if encodedError != nil {
 		log.Println(encodedError)
 	}
 
-	if _, err := presenter.responseWriter.Write(jsonModel); err != nil {
+	if _, err := presenter.responseWriter.Write(encodedResponse); err != nil {
 		log.Println(err)
 	}
 }
