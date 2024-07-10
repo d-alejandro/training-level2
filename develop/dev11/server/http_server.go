@@ -19,17 +19,25 @@ func NewHTTPServer() *HTTPServer {
 func (receiver *HTTPServer) ListenAndServe() {
 	serveMux := http.NewServeMux()
 
-	handlerBinding := bindings.NewHandlerBinding()
-	InitRoutes(serveMux, handlerBinding)
+	bindRouteHandlers(serveMux, bindings.NewHandlerBinding())
 
-	handler := middleware.NewLogRequest(serveMux)
-	handler = middleware.NewPanicRecovery(handler)
+	handler := receiver.bindMiddleware(serveMux)
 
-	httpConfigs := GetConfigs()["http"].(map[string]string)
-	address := net.JoinHostPort(httpConfigs["host"], httpConfigs["port"])
+	err := http.ListenAndServe(receiver.getNetworkAddress(), handler)
 
-	if err := http.ListenAndServe(address, handler); err != nil {
+	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+}
+
+func (receiver *HTTPServer) bindMiddleware(serveMux *http.ServeMux) http.Handler {
+	handler := middleware.NewLogRequest(serveMux)
+	handler = middleware.NewPanicRecovery(handler)
+	return handler
+}
+
+func (receiver *HTTPServer) getNetworkAddress() string {
+	httpConfigs := GetConfigs()["http"].(map[string]string)
+	return net.JoinHostPort(httpConfigs["host"], httpConfigs["port"])
 }
