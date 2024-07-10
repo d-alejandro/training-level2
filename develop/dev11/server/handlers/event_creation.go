@@ -4,7 +4,6 @@ import (
 	"d-alejandro/training-level2/develop/dev11/server/handlers/contracts"
 	"d-alejandro/training-level2/develop/dev11/server/presenters"
 	"d-alejandro/training-level2/develop/dev11/server/validators"
-	"fmt"
 	"net/http"
 )
 
@@ -32,7 +31,6 @@ func (receiver *EventCreationHandler) ServeHTTP(responseWriter http.ResponseWrit
 		return
 	}
 
-	_ = event
-
-	fmt.Fprint(responseWriter, "EventCreationHandler")
+	eventPresenter := presenters.NewEventPresenter(responseWriter)
+	eventPresenter.Present(event)
 }

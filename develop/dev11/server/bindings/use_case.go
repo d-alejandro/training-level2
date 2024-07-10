@@ -7,7 +7,9 @@ type UseCaseBinding struct {
 }
 
 func NewUseCaseBinding() *UseCaseBinding {
+	repositoryBinding := NewRepositoryBinding()
+
 	return &UseCaseBinding{
-		EventCreationUseCase: use_cases.NewEventCreationUseCase(),
+		EventCreationUseCase: use_cases.NewEventCreationUseCase(repositoryBinding.EventCreationRepository),
 	}
 }
