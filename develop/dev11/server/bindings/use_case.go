@@ -3,10 +3,11 @@ package bindings
 import "d-alejandro/training-level2/develop/dev11/server/use_cases"
 
 type UseCaseBinding struct {
-	EventCreationUseCase   *use_cases.EventCreationUseCase
-	EventUpdateUseCase     *use_cases.EventUpdateUseCase
-	EventDeletionUseCase   *use_cases.EventDeletionUseCase
-	EventShowForDayUseCase *use_cases.EventShowForDayUseCase
+	EventCreationUseCase     *use_cases.EventCreationUseCase
+	EventUpdateUseCase       *use_cases.EventUpdateUseCase
+	EventDeletionUseCase     *use_cases.EventDeletionUseCase
+	EventShowForDayUseCase   *use_cases.EventShowForDayUseCase
+	EventShowForMonthUseCase *use_cases.EventShowForMonthUseCase
 }
 
 func NewUseCaseBinding() *UseCaseBinding {
@@ -22,6 +23,9 @@ func NewUseCaseBinding() *UseCaseBinding {
 			repositoryBinding.EventSearchByIdRepository,
 			repositoryBinding.EventDeletionRepository,
 		),
-		EventShowForDayUseCase: use_cases.NewEventShowForDayUseCase(repositoryBinding.EventShowForDayRepository),
+		EventShowForDayUseCase: use_cases.NewEventShowForDayUseCase(repositoryBinding.EventSearchForDayRepository),
+		EventShowForMonthUseCase: use_cases.NewEventShowForMonthUseCase(
+			repositoryBinding.EventSearchForDayIntervalRepository,
+		),
 	}
 }

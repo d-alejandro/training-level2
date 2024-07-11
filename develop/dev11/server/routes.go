@@ -10,4 +10,6 @@ func BindRouteHandlers(serveMux *http.ServeMux, handler *bindings.HandlerBinding
 	serveMux.Handle("POST /update_event/{id}", handler.EventUpdateHandler)
 	serveMux.Handle("POST /delete_event/{id}", handler.EventDeletionHandler)
 	serveMux.Handle("GET /events_for_day", handler.EventShowForDayHandler)
+	serveMux.Handle("GET /events_for_week", handler.EventShowForWeekHandler)
+	serveMux.Handle("GET /events_for_month", handler.EventShowForMonthHandler)
 }

@@ -8,15 +8,15 @@ import (
 	"time"
 )
 
-type EventShowForDayRepository struct {
+type EventSearchForDayRepository struct {
 	dbConnection database.CacheContract
 }
 
-func NewEventShowForDayRepository(dbConnection database.CacheContract) *EventShowForDayRepository {
-	return &EventShowForDayRepository{dbConnection}
+func NewEventSearchForDayRepository(dbConnection database.CacheContract) *EventSearchForDayRepository {
+	return &EventSearchForDayRepository{dbConnection}
 }
 
-func (receiver *EventShowForDayRepository) Make(date *time.Time) ([]*models.Event, error) {
+func (receiver *EventSearchForDayRepository) Make(date *time.Time) ([]*models.Event, error) {
 	events, loadError := receiver.dbConnection.LoadEvents()
 	if loadError != nil {
 		return nil, loadError
