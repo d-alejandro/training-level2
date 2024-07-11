@@ -16,6 +16,6 @@ func NewHandlerBinding() *HandlerBinding {
 		EventCreationHandler:   handlers.NewEventCreationHandler(useCaseBinding.EventCreationUseCase),
 		EventUpdateHandler:     handlers.NewEventUpdateHandler(useCaseBinding.EventUpdateUseCase),
 		EventDeletionHandler:   handlers.NewEventDeletionHandler(useCaseBinding.EventDeletionUseCase),
-		EventShowForDayHandler: handlers.NewEventShowForDayHandler(),
+		EventShowForDayHandler: handlers.NewEventShowForDayHandler(useCaseBinding.EventShowForDayUseCase),
 	}
 }

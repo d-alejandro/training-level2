@@ -10,6 +10,7 @@ type RepositoryBinding struct {
 	EventSearchByIdRepository *repositories.EventSearchByIdRepository
 	EventUpdateRepository     *repositories.EventUpdateRepository
 	EventDeletionRepository   *repositories.EventDeletionRepository
+	EventShowForDayRepository *repositories.EventShowForDayRepository
 }
 
 func NewRepositoryBinding() *RepositoryBinding {
@@ -20,5 +21,6 @@ func NewRepositoryBinding() *RepositoryBinding {
 		EventSearchByIdRepository: repositories.NewEventSearchByIdRepository(dbConnection),
 		EventUpdateRepository:     repositories.NewEventUpdateRepository(dbConnection),
 		EventDeletionRepository:   repositories.NewEventDeletionRepository(dbConnection),
+		EventShowForDayRepository: repositories.NewEventShowForDayRepository(dbConnection),
 	}
 }
