@@ -17,11 +17,7 @@ func NewHTTPServer() *HTTPServer {
 }
 
 func (receiver *HTTPServer) ListenAndServe() {
-	serveMux := http.NewServeMux()
-
-	BindRouteHandlers(serveMux, bindings.NewHandlerBinding())
-
-	handler := receiver.bindMiddleware(serveMux)
+	handler := receiver.InitRequestHandler()
 
 	err := http.ListenAndServe(receiver.getNetworkAddress(), handler)
 
@@ -29,6 +25,12 @@ func (receiver *HTTPServer) ListenAndServe() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+}
+
+func (receiver *HTTPServer) InitRequestHandler() http.Handler {
+	serveMux := http.NewServeMux()
+	BindRouteHandlers(serveMux, bindings.NewHandlerBinding())
+	return receiver.bindMiddleware(serveMux)
 }
 
 func (receiver *HTTPServer) bindMiddleware(serveMux *http.ServeMux) http.Handler {
