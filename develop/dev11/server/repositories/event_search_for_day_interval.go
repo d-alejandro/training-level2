@@ -24,7 +24,7 @@ func (receiver *EventSearchForDayIntervalRepository) Make(startDate, endDate *ti
 	var result []*models.Event
 
 	for _, event := range events {
-		if startDate.Before(event.Date) && endDate.After(event.Date) {
+		if (*startDate == event.Date) || (startDate.Before(event.Date) && endDate.After(event.Date)) {
 			result = append(result, event)
 		}
 	}
