@@ -3,6 +3,7 @@ package helpers
 import (
 	"github.com/jinzhu/now"
 	"time"
+	_ "time/tzdata"
 )
 
 func GetNow(date *time.Time) (*now.Now, error) {
