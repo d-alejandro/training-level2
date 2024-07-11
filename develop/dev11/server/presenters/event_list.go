@@ -22,7 +22,7 @@ func (presenter *EventListPresenter) Present(events []*models.Event) {
 	presenter.responseWriter.WriteHeader(http.StatusOK)
 
 	response := struct {
-		Result []*models.Event `json:"response"`
+		Result []*models.Event `json:"result"`
 	}{
 		Result: events,
 	}
