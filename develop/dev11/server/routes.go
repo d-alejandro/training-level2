@@ -5,6 +5,9 @@ import (
 	"net/http"
 )
 
+/*
+BindRouteHandlers function
+*/
 func BindRouteHandlers(serveMux *http.ServeMux, handler *bindings.HandlerBinding) {
 	serveMux.Handle("POST /create_event", handler.EventCreationHandler)
 	serveMux.Handle("POST /update_event/{id}", handler.EventUpdateHandler)

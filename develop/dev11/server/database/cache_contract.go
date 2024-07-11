@@ -2,6 +2,9 @@ package database
 
 import "d-alejandro/training-level2/develop/dev11/server/models"
 
+/*
+CacheContract contract
+*/
 type CacheContract interface {
 	SetEvent(id string, event *models.Event) error
 	DeleteEvent(id string) error

@@ -5,6 +5,9 @@ import (
 	"time"
 )
 
+/*
+EventSearchForDayRepositoryContract contract
+*/
 type EventSearchForDayRepositoryContract interface {
 	Make(date *time.Time) ([]*models.Event, error)
 }

@@ -1,17 +1,23 @@
-package use_cases
+package usecases
 
 import (
 	"d-alejandro/training-level2/develop/dev11/server/dto"
 	"d-alejandro/training-level2/develop/dev11/server/helpers"
 	"d-alejandro/training-level2/develop/dev11/server/models"
-	"d-alejandro/training-level2/develop/dev11/server/use_cases/contracts"
+	"d-alejandro/training-level2/develop/dev11/server/usecases/contracts"
 )
 
+/*
+EventUpdateUseCase structure
+*/
 type EventUpdateUseCase struct {
 	searchByIDRepository contracts.EventSearchByIDRepositoryContract
 	updateRepository     contracts.EventUpdateRepositoryContract
 }
 
+/*
+NewEventUpdateUseCase constructor
+*/
 func NewEventUpdateUseCase(
 	searchByIDRepository contracts.EventSearchByIDRepositoryContract,
 	updateRepository contracts.EventUpdateRepositoryContract,
@@ -22,6 +28,9 @@ func NewEventUpdateUseCase(
 	}
 }
 
+/*
+Execute method
+*/
 func (receiver *EventUpdateUseCase) Execute(id string, dto *dto.EventRequestDTO) (*models.Event, error) {
 	event, searchError := receiver.searchByIDRepository.Make(id)
 	if searchError != nil {

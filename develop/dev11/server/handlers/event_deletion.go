@@ -6,14 +6,23 @@ import (
 	"net/http"
 )
 
+/*
+EventDeletionHandler structure
+*/
 type EventDeletionHandler struct {
 	useCase contracts.EventDeletionUseCaseContract
 }
 
+/*
+NewEventDeletionHandler constructor
+*/
 func NewEventDeletionHandler(useCase contracts.EventDeletionUseCaseContract) *EventDeletionHandler {
 	return &EventDeletionHandler{useCase}
 }
 
+/*
+ServeHTTP method
+*/
 func (receiver *EventDeletionHandler) ServeHTTP(responseWriter http.ResponseWriter, request *http.Request) {
 	id := request.PathValue("id")
 

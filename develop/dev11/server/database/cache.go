@@ -6,17 +6,26 @@ import (
 	"sync"
 )
 
+/*
+Cache structure
+*/
 type Cache struct {
 	sync.RWMutex
 	data map[string]*models.Event
 }
 
+/*
+NewCache constructor
+*/
 func NewCache() CacheContract {
 	return &Cache{
 		data: make(map[string]*models.Event),
 	}
 }
 
+/*
+SetEvent method
+*/
 func (cache *Cache) SetEvent(id string, event *models.Event) error {
 	cache.Lock()
 	defer cache.Unlock()
@@ -26,6 +35,9 @@ func (cache *Cache) SetEvent(id string, event *models.Event) error {
 	return nil
 }
 
+/*
+DeleteEvent method
+*/
 func (cache *Cache) DeleteEvent(id string) error {
 	cache.Lock()
 	defer cache.Unlock()
@@ -35,6 +47,9 @@ func (cache *Cache) DeleteEvent(id string) error {
 	return nil
 }
 
+/*
+LoadEvents method
+*/
 func (cache *Cache) LoadEvents() (map[string]*models.Event, error) {
 	cache.RLock()
 	defer cache.RUnlock()
@@ -42,6 +57,9 @@ func (cache *Cache) LoadEvents() (map[string]*models.Event, error) {
 	return cache.data, nil
 }
 
+/*
+GetEvent method
+*/
 func (cache *Cache) GetEvent(id string) (*models.Event, error) {
 	cache.RLock()
 	defer cache.RUnlock()

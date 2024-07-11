@@ -7,14 +7,23 @@ import (
 	"net/http"
 )
 
+/*
+EventUpdateHandler structure
+*/
 type EventUpdateHandler struct {
 	useCase contracts.EventUpdateUseCaseContract
 }
 
+/*
+NewEventUpdateHandler constructor
+*/
 func NewEventUpdateHandler(useCase contracts.EventUpdateUseCaseContract) *EventUpdateHandler {
 	return &EventUpdateHandler{useCase}
 }
 
+/*
+ServeHTTP method
+*/
 func (receiver *EventUpdateHandler) ServeHTTP(responseWriter http.ResponseWriter, request *http.Request) {
 	eventRequestValidator := validators.NewEventRequestValidator()
 	errorPresenter := presenters.NewErrorPresenter(responseWriter)

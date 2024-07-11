@@ -3,9 +3,11 @@ package helpers
 import (
 	"github.com/jinzhu/now"
 	"time"
-	_ "time/tzdata"
 )
 
+/*
+GetNow function
+*/
 func GetNow(date *time.Time) (*now.Now, error) {
 	const LocationMoscow = "Europe/Moscow"
 	location, err := time.LoadLocation(LocationMoscow)

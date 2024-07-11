@@ -1,15 +1,21 @@
-package use_cases
+package usecases
 
 import (
 	"d-alejandro/training-level2/develop/dev11/server/models"
-	"d-alejandro/training-level2/develop/dev11/server/use_cases/contracts"
+	"d-alejandro/training-level2/develop/dev11/server/usecases/contracts"
 )
 
+/*
+EventDeletionUseCase structure
+*/
 type EventDeletionUseCase struct {
 	searchByIDRepository contracts.EventSearchByIDRepositoryContract
 	deletionRepository   contracts.EventDeletionRepositoryContract
 }
 
+/*
+NewEventDeletionUseCase constructor
+*/
 func NewEventDeletionUseCase(
 	searchByIDRepository contracts.EventSearchByIDRepositoryContract,
 	deletionRepository contracts.EventDeletionRepositoryContract,
@@ -20,6 +26,9 @@ func NewEventDeletionUseCase(
 	}
 }
 
+/*
+Execute method
+*/
 func (receiver *EventDeletionUseCase) Execute(id string) (*models.Event, error) {
 	event, searchError := receiver.searchByIDRepository.Make(id)
 	if searchError != nil {

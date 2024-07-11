@@ -1,22 +1,31 @@
-package use_cases
+package usecases
 
 import (
 	"d-alejandro/training-level2/develop/dev11/server/helpers"
 	"d-alejandro/training-level2/develop/dev11/server/models"
-	"d-alejandro/training-level2/develop/dev11/server/use_cases/contracts"
+	"d-alejandro/training-level2/develop/dev11/server/usecases/contracts"
 )
 
-type EventShowForWeekUseCase struct {
+/*
+EventShowForMonthUseCase structure
+*/
+type EventShowForMonthUseCase struct {
 	repository contracts.EventSearchForDayIntervalRepositoryContract
 }
 
-func NewEventShowForWeekUseCase(
+/*
+NewEventShowForMonthUseCase constructor
+*/
+func NewEventShowForMonthUseCase(
 	repository contracts.EventSearchForDayIntervalRepositoryContract,
-) *EventShowForWeekUseCase {
-	return &EventShowForWeekUseCase{repository}
+) *EventShowForMonthUseCase {
+	return &EventShowForMonthUseCase{repository}
 }
 
-func (receiver *EventShowForWeekUseCase) Execute(date string) ([]*models.Event, error) {
+/*
+Execute method
+*/
+func (receiver *EventShowForMonthUseCase) Execute(date string) ([]*models.Event, error) {
 	parsedDate, parsedError := helpers.ParseDate(date)
 	if parsedError != nil {
 		return nil, parsedError
@@ -27,8 +36,8 @@ func (receiver *EventShowForWeekUseCase) Execute(date string) ([]*models.Event, 
 		return nil, nowPackageError
 	}
 
-	startDate := now.BeginningOfWeek()
-	endDate := now.EndOfWeek()
+	startDate := now.BeginningOfMonth()
+	endDate := now.EndOfMonth()
 
 	return receiver.repository.Make(&startDate, &endDate)
 }

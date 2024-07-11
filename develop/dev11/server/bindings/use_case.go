@@ -1,34 +1,40 @@
 package bindings
 
-import "d-alejandro/training-level2/develop/dev11/server/use_cases"
+import "d-alejandro/training-level2/develop/dev11/server/usecases"
 
+/*
+UseCaseBinding structure
+*/
 type UseCaseBinding struct {
-	EventCreationUseCase     *use_cases.EventCreationUseCase
-	EventUpdateUseCase       *use_cases.EventUpdateUseCase
-	EventDeletionUseCase     *use_cases.EventDeletionUseCase
-	EventShowForDayUseCase   *use_cases.EventShowForDayUseCase
-	EventShowForWeekUseCase  *use_cases.EventShowForWeekUseCase
-	EventShowForMonthUseCase *use_cases.EventShowForMonthUseCase
+	EventCreationUseCase     *usecases.EventCreationUseCase
+	EventUpdateUseCase       *usecases.EventUpdateUseCase
+	EventDeletionUseCase     *usecases.EventDeletionUseCase
+	EventShowForDayUseCase   *usecases.EventShowForDayUseCase
+	EventShowForWeekUseCase  *usecases.EventShowForWeekUseCase
+	EventShowForMonthUseCase *usecases.EventShowForMonthUseCase
 }
 
+/*
+NewUseCaseBinding constructor
+*/
 func NewUseCaseBinding() *UseCaseBinding {
 	repositoryBinding := NewRepositoryBinding()
 
 	return &UseCaseBinding{
-		EventCreationUseCase: use_cases.NewEventCreationUseCase(repositoryBinding.EventCreationRepository),
-		EventUpdateUseCase: use_cases.NewEventUpdateUseCase(
-			repositoryBinding.EventSearchByIdRepository,
+		EventCreationUseCase: usecases.NewEventCreationUseCase(repositoryBinding.EventCreationRepository),
+		EventUpdateUseCase: usecases.NewEventUpdateUseCase(
+			repositoryBinding.EventSearchByIDRepository,
 			repositoryBinding.EventUpdateRepository,
 		),
-		EventDeletionUseCase: use_cases.NewEventDeletionUseCase(
-			repositoryBinding.EventSearchByIdRepository,
+		EventDeletionUseCase: usecases.NewEventDeletionUseCase(
+			repositoryBinding.EventSearchByIDRepository,
 			repositoryBinding.EventDeletionRepository,
 		),
-		EventShowForDayUseCase: use_cases.NewEventShowForDayUseCase(repositoryBinding.EventSearchForDayRepository),
-		EventShowForWeekUseCase: use_cases.NewEventShowForWeekUseCase(
+		EventShowForDayUseCase: usecases.NewEventShowForDayUseCase(repositoryBinding.EventSearchForDayRepository),
+		EventShowForWeekUseCase: usecases.NewEventShowForWeekUseCase(
 			repositoryBinding.EventSearchForDayIntervalRepository,
 		),
-		EventShowForMonthUseCase: use_cases.NewEventShowForMonthUseCase(
+		EventShowForMonthUseCase: usecases.NewEventShowForMonthUseCase(
 			repositoryBinding.EventSearchForDayIntervalRepository,
 		),
 	}

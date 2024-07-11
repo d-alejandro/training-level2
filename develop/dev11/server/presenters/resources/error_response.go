@@ -1,5 +1,8 @@
 package resources
 
+/*
+ErrorResponse structure
+*/
 type ErrorResponse struct {
 	Error struct {
 		Message string `json:"message"`
@@ -7,6 +10,9 @@ type ErrorResponse struct {
 	} `json:"error"`
 }
 
+/*
+NewErrorResponse constructor
+*/
 func NewErrorResponse(message, status string) *ErrorResponse {
 	return &ErrorResponse{
 		Error: struct {

@@ -7,16 +7,25 @@ import (
 	"runtime/debug"
 )
 
+/*
+PanicRecovery structure
+*/
 type PanicRecovery struct {
 	nextHandler http.Handler
 }
 
+/*
+NewPanicRecovery constructor
+*/
 func NewPanicRecovery(handler http.Handler) http.Handler {
 	return &PanicRecovery{
 		nextHandler: handler,
 	}
 }
 
+/*
+ServeHTTP method
+*/
 func (receiver *PanicRecovery) ServeHTTP(responseWriter http.ResponseWriter, request *http.Request) {
 	defer func() {
 		if err := recover(); err != nil {

@@ -7,14 +7,23 @@ import (
 	"time"
 )
 
+/*
+EventSearchForDayIntervalRepository structure
+*/
 type EventSearchForDayIntervalRepository struct {
 	dbConnection database.CacheContract
 }
 
+/*
+NewEventSearchForDayIntervalRepository constructor
+*/
 func NewEventSearchForDayIntervalRepository(dbConnection database.CacheContract) *EventSearchForDayIntervalRepository {
 	return &EventSearchForDayIntervalRepository{dbConnection}
 }
 
+/*
+Make method
+*/
 func (receiver *EventSearchForDayIntervalRepository) Make(startDate, endDate *time.Time) ([]*models.Event, error) {
 	events, loadError := receiver.dbConnection.LoadEvents()
 	if loadError != nil {

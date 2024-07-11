@@ -7,14 +7,23 @@ import (
 	"net/http"
 )
 
+/*
+EventShowForMonthHandler structure
+*/
 type EventShowForMonthHandler struct {
 	useCase contracts.EventShowForMonthUseCaseContract
 }
 
+/*
+NewEventShowForMonthHandler constructor
+*/
 func NewEventShowForMonthHandler(useCase contracts.EventShowForMonthUseCaseContract) *EventShowForMonthHandler {
 	return &EventShowForMonthHandler{useCase}
 }
 
+/*
+ServeHTTP method
+*/
 func (receiver *EventShowForMonthHandler) ServeHTTP(responseWriter http.ResponseWriter, request *http.Request) {
 	eventDateRequestValidator := validators.NewEventDateRequestValidator()
 	errorPresenter := presenters.NewErrorPresenter(responseWriter)

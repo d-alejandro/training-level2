@@ -9,13 +9,22 @@ import (
 	"os"
 )
 
+/*
+HTTPServer structure
+*/
 type HTTPServer struct {
 }
 
+/*
+NewHTTPServer constructor
+*/
 func NewHTTPServer() *HTTPServer {
 	return &HTTPServer{}
 }
 
+/*
+ListenAndServe method
+*/
 func (receiver *HTTPServer) ListenAndServe() {
 	handler := receiver.InitRequestHandler()
 
@@ -27,6 +36,9 @@ func (receiver *HTTPServer) ListenAndServe() {
 	}
 }
 
+/*
+InitRequestHandler method
+*/
 func (receiver *HTTPServer) InitRequestHandler() http.Handler {
 	serveMux := http.NewServeMux()
 	BindRouteHandlers(serveMux, bindings.NewHandlerBinding())

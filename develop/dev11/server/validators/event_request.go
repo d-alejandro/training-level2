@@ -6,15 +6,24 @@ import (
 	"net/http"
 )
 
+/*
+EventRequestValidator structure
+*/
 type EventRequestValidator struct {
 	Name string `json:"name" validate:"required"`
 	Date string `json:"date" validate:"required,datetime=2006-01-02"`
 }
 
+/*
+NewEventRequestValidator constructor
+*/
 func NewEventRequestValidator() *EventRequestValidator {
 	return &EventRequestValidator{}
 }
 
+/*
+Validate method
+*/
 func (receiver *EventRequestValidator) Validate(request *http.Request) (*dto.EventRequestDTO, error) {
 	if err := request.ParseForm(); err != nil {
 		return nil, err

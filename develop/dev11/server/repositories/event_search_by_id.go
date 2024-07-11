@@ -5,14 +5,23 @@ import (
 	"d-alejandro/training-level2/develop/dev11/server/models"
 )
 
-type EventSearchByIdRepository struct {
+/*
+EventSearchByIDRepository structure
+*/
+type EventSearchByIDRepository struct {
 	dbConnection database.CacheContract
 }
 
-func NewEventSearchByIdRepository(dbConnection database.CacheContract) *EventSearchByIdRepository {
-	return &EventSearchByIdRepository{dbConnection}
+/*
+NewEventSearchByIDRepository constructor
+*/
+func NewEventSearchByIDRepository(dbConnection database.CacheContract) *EventSearchByIDRepository {
+	return &EventSearchByIDRepository{dbConnection}
 }
 
-func (receiver *EventSearchByIdRepository) Make(id string) (*models.Event, error) {
+/*
+Make method
+*/
+func (receiver *EventSearchByIDRepository) Make(id string) (*models.Event, error) {
 	return receiver.dbConnection.GetEvent(id)
 }

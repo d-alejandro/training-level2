@@ -7,14 +7,23 @@ import (
 	"time"
 )
 
+/*
+EventCreationRepository structure
+*/
 type EventCreationRepository struct {
 	dbConnection database.CacheContract
 }
 
+/*
+NewEventCreationRepository constructor
+*/
 func NewEventCreationRepository(dbConnection database.CacheContract) *EventCreationRepository {
 	return &EventCreationRepository{dbConnection}
 }
 
+/*
+Make method
+*/
 func (receiver *EventCreationRepository) Make(name string, date *time.Time) (*models.Event, error) {
 	id := uuid.Must(uuid.NewRandom()).String()
 

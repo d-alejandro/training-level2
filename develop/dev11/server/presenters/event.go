@@ -7,14 +7,23 @@ import (
 	"net/http"
 )
 
+/*
+EventPresenter structure
+*/
 type EventPresenter struct {
 	responseWriter http.ResponseWriter
 }
 
+/*
+NewEventPresenter constructor
+*/
 func NewEventPresenter(responseWriter http.ResponseWriter) *EventPresenter {
 	return &EventPresenter{responseWriter}
 }
 
+/*
+Present method
+*/
 func (presenter *EventPresenter) Present(event *models.Event) {
 	presenter.responseWriter.Header().
 		Set("Content-Type", "application/json")

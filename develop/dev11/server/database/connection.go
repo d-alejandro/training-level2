@@ -9,6 +9,9 @@ var (
 	database CacheContract
 )
 
+/*
+GetDatabaseConnection Singleton-function
+*/
 func GetDatabaseConnection() CacheContract {
 	once.Do(func() {
 		database = NewCache()

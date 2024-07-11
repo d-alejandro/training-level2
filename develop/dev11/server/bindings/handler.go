@@ -2,6 +2,9 @@ package bindings
 
 import "d-alejandro/training-level2/develop/dev11/server/handlers"
 
+/*
+HandlerBinding structure
+*/
 type HandlerBinding struct {
 	EventCreationHandler     *handlers.EventCreationHandler
 	EventUpdateHandler       *handlers.EventUpdateHandler
@@ -11,6 +14,9 @@ type HandlerBinding struct {
 	EventShowForMonthHandler *handlers.EventShowForMonthHandler
 }
 
+/*
+NewHandlerBinding constructor
+*/
 func NewHandlerBinding() *HandlerBinding {
 	useCaseBinding := NewUseCaseBinding()
 

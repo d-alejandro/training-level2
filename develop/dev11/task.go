@@ -1,6 +1,9 @@
 package main
 
-import "d-alejandro/training-level2/develop/dev11/server"
+import (
+	"d-alejandro/training-level2/develop/dev11/server"
+	_ "time/tzdata"
+)
 
 /*
 === HTTP server ===

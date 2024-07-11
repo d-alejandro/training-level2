@@ -7,16 +7,25 @@ import (
 	"time"
 )
 
+/*
+LogRequest structure
+*/
 type LogRequest struct {
 	nextHandler http.Handler
 }
 
+/*
+NewLogRequest constructor
+*/
 func NewLogRequest(handler http.Handler) http.Handler {
 	return &LogRequest{
 		nextHandler: handler,
 	}
 }
 
+/*
+ServeHTTP method
+*/
 func (receiver *LogRequest) ServeHTTP(responseWriter http.ResponseWriter, request *http.Request) {
 	timeStart := time.Now()
 

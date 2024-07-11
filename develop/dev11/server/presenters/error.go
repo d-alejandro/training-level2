@@ -8,14 +8,23 @@ import (
 	"net/http"
 )
 
+/*
+ErrorPresenter structure
+*/
 type ErrorPresenter struct {
 	responseWriter http.ResponseWriter
 }
 
+/*
+NewErrorPresenter constructor
+*/
 func NewErrorPresenter(responseWriter http.ResponseWriter) *ErrorPresenter {
 	return &ErrorPresenter{responseWriter}
 }
 
+/*
+Present method
+*/
 func (presenter *ErrorPresenter) Present(statusCode int, errorMessage any) {
 	presenter.responseWriter.Header().
 		Set("Content-Type", "application/json")
