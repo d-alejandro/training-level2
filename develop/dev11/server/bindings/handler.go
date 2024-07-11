@@ -15,11 +15,11 @@ func NewHandlerBinding() *HandlerBinding {
 	useCaseBinding := NewUseCaseBinding()
 
 	return &HandlerBinding{
-		EventCreationHandler:   handlers.NewEventCreationHandler(useCaseBinding.EventCreationUseCase),
-		EventUpdateHandler:     handlers.NewEventUpdateHandler(useCaseBinding.EventUpdateUseCase),
-		EventDeletionHandler:   handlers.NewEventDeletionHandler(useCaseBinding.EventDeletionUseCase),
-		EventShowForDayHandler: handlers.NewEventShowForDayHandler(useCaseBinding.EventShowForDayUseCase),
-		//EventShowForWeekHandler:  handlers.NewEventShowForWeekHandler(),
+		EventCreationHandler:     handlers.NewEventCreationHandler(useCaseBinding.EventCreationUseCase),
+		EventUpdateHandler:       handlers.NewEventUpdateHandler(useCaseBinding.EventUpdateUseCase),
+		EventDeletionHandler:     handlers.NewEventDeletionHandler(useCaseBinding.EventDeletionUseCase),
+		EventShowForDayHandler:   handlers.NewEventShowForDayHandler(useCaseBinding.EventShowForDayUseCase),
+		EventShowForWeekHandler:  handlers.NewEventShowForWeekHandler(useCaseBinding.EventShowForWeekUseCase),
 		EventShowForMonthHandler: handlers.NewEventShowForMonthHandler(useCaseBinding.EventShowForMonthUseCase),
 	}
 }

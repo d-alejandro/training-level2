@@ -7,6 +7,7 @@ type UseCaseBinding struct {
 	EventUpdateUseCase       *use_cases.EventUpdateUseCase
 	EventDeletionUseCase     *use_cases.EventDeletionUseCase
 	EventShowForDayUseCase   *use_cases.EventShowForDayUseCase
+	EventShowForWeekUseCase  *use_cases.EventShowForWeekUseCase
 	EventShowForMonthUseCase *use_cases.EventShowForMonthUseCase
 }
 
@@ -24,6 +25,9 @@ func NewUseCaseBinding() *UseCaseBinding {
 			repositoryBinding.EventDeletionRepository,
 		),
 		EventShowForDayUseCase: use_cases.NewEventShowForDayUseCase(repositoryBinding.EventSearchForDayRepository),
+		EventShowForWeekUseCase: use_cases.NewEventShowForWeekUseCase(
+			repositoryBinding.EventSearchForDayIntervalRepository,
+		),
 		EventShowForMonthUseCase: use_cases.NewEventShowForMonthUseCase(
 			repositoryBinding.EventSearchForDayIntervalRepository,
 		),
